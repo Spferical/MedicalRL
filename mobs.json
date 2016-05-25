@@ -1,0 +1,9 @@
+{
+	"mobs": [
+		{
+			"name": "orc",
+			"char": "o",
+			"color": "white"
+		}
+	]
+}
