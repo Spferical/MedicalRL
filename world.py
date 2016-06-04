@@ -219,7 +219,7 @@ def generate_level_cellular_automata():
         y = random.randint(1, level.height - 1)
     tiles = flood_fill(level, x, y)
 
-    if len(tiles) < .45 * level.width * level.height:
+    if len(tiles) < .20 * level.width * level.height:
         # the cave generated was too small!
         # try again
         return generate_level_cellular_automata()
