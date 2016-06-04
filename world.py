@@ -33,7 +33,7 @@ class Level(object):
     def __getitem__(self, key):
         x, y = key
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
-            return Tile('wall')
+            return Tile('wall', blocked=True, opaque=True)
         return self.tiles[x][y]
 
     def __setitem__(self, key, value):
@@ -50,7 +50,7 @@ class Level(object):
 class World(object):
     def __init__(self):
         self.player = None
-        self.levels = [generate_level()]
+        self.levels = [generate_level_cellular_automata()]
 
 
 def lock_number(x, min_x, max_x):
@@ -93,6 +93,14 @@ def floors_in_or_by_rect(level, x1, y1, x2, y2):
 
 def dig(level, x, y):
     level[x, y] = Tile('floor')
+    events.events.handle_event(
+        events.Event(
+            events.EventType.TILE_REVEALED,
+            TileInfo(x, y, level[x, y])))
+
+
+def undig(level, x, y):
+    level[x, y] = Tile('wall', blocked=True, opaque=True)
     events.events.handle_event(
         events.Event(
             events.EventType.TILE_REVEALED,
@@ -144,3 +152,80 @@ def generate_level():
                         try_to_dig_room(level, pos, direction) or \
                         try_to_dig_hallway(level, pos, direction):
                     dig(level, pos[0], pos[1])
+
+
+def walls_a_tiles_away(level, x, y, a):
+    # manhattan distance
+    for x1 in range(x - a, x + a + 1):
+        for y1 in (y - a, y + a):
+            if level[x1, y1].blocked:
+                yield (x1, y1)
+    for y1 in range(y - a + 1, y + a):
+        for x1 in (x - a, x + a):
+            if level[x1, y1].blocked:
+                yield (x1, y1)
+
+
+def reachable_tiles(level, x, y):
+    moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    return [(x1, y1) for (x1, y1) in (
+                (x + m[0], y + m[1]) for m in moves)
+            if not level[x1, y1].blocked]
+
+
+def flood_fill(level, x, y):
+    tiles_to_check = {(x, y)}
+    checked_tiles = set()
+    found_tiles = set()
+    while tiles_to_check:
+        tile = tiles_to_check.pop()
+        checked_tiles.add(tile)
+        if not level[tile].blocked:
+            found_tiles.add(tile)
+            tiles_to_check.update(
+                tile for tile in reachable_tiles(level, tile[0], tile[1])
+                if tile not in checked_tiles)
+    return found_tiles
+
+
+def generate_level_cellular_automata():
+    width = constants.MAP_WIDTH
+    height = constants.MAP_HEIGHT
+    level = Level(width, height)
+    # random initial distribution
+    for x in range(level.width):
+        for y in range(level.height):
+            if random.randint(1, 100) < 45:
+                dig(level, x, y)
+
+    # now, apply CA
+    for i in range(4):
+        new_walls = [[len(list(walls_a_tiles_away(level, x, y, 1))) >= 5 or
+                      len(list(walls_a_tiles_away(level, x, y, 3))) <= 1
+                      for y in range(level.height)]
+                     for x in range(level.width)]
+        for x in range(level.width):
+            for y in range(level.height):
+                if new_walls[x][y]:
+                    undig(level, x, y)
+                else:
+                    dig(level, x, y)
+
+    # detect and delete floors outside of main cavern to prevent inaccessable
+    # areas
+    x = y = -1
+    while level[x, y].blocked:
+        x = random.randint(1, level.width - 1)
+        y = random.randint(1, level.height - 1)
+    tiles = flood_fill(level, x, y)
+
+    if len(tiles) < .45 * level.width * level.height:
+        # the cave generated was too small!
+        # try again
+        return generate_level_cellular_automata()
+
+    for x in range(0, level.width):
+        for y in range(0, level.height):
+            if (x, y) not in tiles:
+                undig(level, x, y)
+    return level
