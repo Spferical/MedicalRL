@@ -1,7 +1,8 @@
 import tcod
 import render
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH, DIRECTION_KEYS
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH, DIRECTION_KEYS, FOV_RADIUS
 import events
+import fov
 from util import Pos
 import world
 
@@ -13,6 +14,8 @@ class Game(object):
         self.render = render.Renderer()
         self.world = world.World()
         self.render.render()
+        events.events.handle_event(
+            events.Event(events.EventType.MOVE, self.world.player))
         self.update_fov()
 
     def handle_input(self):
@@ -26,16 +29,13 @@ class Game(object):
                 self.attempt_player_move(DIRECTION_KEYS[char])
 
     def update_fov(self):
-        # TODO: actual fov
         pos = self.world.player.pos
         level = self.world.levels[self.world.player.dungeon_level]
-        for x in range(pos.x - 10, pos.x + 10 + 1):
-            for y in range(pos.y - 10, pos.y + 10 + 1):
-                if not (x == pos.x and y == pos.y):
-                    tile_info = world.TileInfo(x, y, level[x, y])
-                    events.events.handle_event(
-                        events.Event(
-                            events.EventType.TILE_REVEALED, tile_info))
+        for pos in fov.calculate_fov(pos, FOV_RADIUS, level):
+            tile_info = world.TileInfo(pos.x, pos.y, level[pos.x, pos.y])
+            events.events.handle_event(
+                events.Event(
+                    events.EventType.TILE_REVEALED, tile_info))
 
     def attempt_player_move(self, direction):
         player = self.world.player

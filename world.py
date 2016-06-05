@@ -61,8 +61,6 @@ class World(object):
     def __init__(self):
         self.levels = [generate_level_cellular_automata()]
         self.player = mob.Player(self.levels[0].up_stairs_pos, player_info)
-        events.events.handle_event(
-            events.Event(events.EventType.MOVE, self.player))
 
 
 def lock_number(x, min_x, max_x):

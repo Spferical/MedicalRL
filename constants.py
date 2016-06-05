@@ -37,3 +37,5 @@ DIRECTION_KEYS = {
     'b': (-1, 1),
     'n': (1, 1)
 }
+
+FOV_RADIUS = 20

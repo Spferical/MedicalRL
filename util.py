@@ -19,7 +19,7 @@ class Pos(object):
         return Pos(self.x // num, self.y // num)
 
     def __str__(self):
-        return "({}, {})".format(self.x, self.y)
+        return "Pos({}, {})".format(self.x, self.y)
 
     def __len__(self):
         return 2

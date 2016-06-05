@@ -41,7 +41,7 @@ class Renderer(object):
     def handle_tile_reveal(self, event):
         (x, y) = event.entity.x, event.entity.y
         self.tile_data[x, y] = event.entity.tile
-        self.draw_tile(Pos(x, y))
+        self.draw_tile(Pos(x, y), new=True)
 
     def handle_move(self, event):
         self.mob_data.add(event.entity)
@@ -67,10 +67,13 @@ class Renderer(object):
         return world_pos + self.player_pos - \
             Pos(MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT) // 2
 
-    def draw_tile(self, pos):
+    def draw_tile(self, pos, new=False):
         tile = self.tile_data[pos.x, pos.y]
         window_pos = self.get_map_window_pos(pos)
         drawables[tile.name].draw(self.map, window_pos)
+        if new:
+            tcod.console_set_char_background(self.map, window_pos.x,
+                                             window_pos.y, tcod.darkest_grey)
 
     def draw_mob(self, mob):
         window_pos = self.get_map_window_pos(mob.pos)
