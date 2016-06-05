@@ -2,6 +2,15 @@ import math
 import random
 import constants
 import events
+import json
+import mob
+from util import Pos
+
+
+with open("data.json") as data:
+    data = json.load(data)
+    mobinfo = data['mobs']
+    player_info = data['player']
 
 
 class Tile(object):
@@ -29,6 +38,7 @@ class Level(object):
         self.tiles = [[Tile('wall', blocked=True, opaque=True)
                        for y in range(height)]
                       for x in range(width)]
+        self.up_stairs_pos = self.down_stairs_pos = None
 
     def __getitem__(self, key):
         x, y = key
@@ -49,8 +59,10 @@ class Level(object):
 
 class World(object):
     def __init__(self):
-        self.player = None
         self.levels = [generate_level_cellular_automata()]
+        self.player = mob.Player(self.levels[0].up_stairs_pos, player_info)
+        events.events.handle_event(
+            events.Event(events.EventType.MOVE, self.player))
 
 
 def lock_number(x, min_x, max_x):
@@ -91,20 +103,19 @@ def floors_in_or_by_rect(level, x1, y1, x2, y2):
     return False
 
 
-def dig(level, x, y):
-    level[x, y] = Tile('floor')
+def reveal_tile(level, x, y):
     events.events.handle_event(
         events.Event(
             events.EventType.TILE_REVEALED,
             TileInfo(x, y, level[x, y])))
+
+
+def dig(level, x, y):
+    level[x, y] = Tile('floor')
 
 
 def undig(level, x, y):
     level[x, y] = Tile('wall', blocked=True, opaque=True)
-    events.events.handle_event(
-        events.Event(
-            events.EventType.TILE_REVEALED,
-            TileInfo(x, y, level[x, y])))
 
 
 def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
@@ -188,6 +199,14 @@ def flood_fill(level, x, y):
     return found_tiles
 
 
+def get_random_passable_position(level):
+    x = y = -1
+    while level[x, y].blocked:
+        x = random.randint(1, level.width - 1)
+        y = random.randint(1, level.height - 1)
+    return (x, y)
+
+
 def generate_level_cellular_automata():
     width = constants.MAP_WIDTH
     height = constants.MAP_HEIGHT
@@ -213,16 +232,22 @@ def generate_level_cellular_automata():
 
     # detect and delete floors outside of main cavern to prevent inaccessable
     # areas
-    x = y = -1
-    while level[x, y].blocked:
-        x = random.randint(1, level.width - 1)
-        y = random.randint(1, level.height - 1)
+    x, y = get_random_passable_position(level)
     tiles = flood_fill(level, x, y)
 
     if len(tiles) < .20 * level.width * level.height:
         # the cave generated was too small!
         # try again
         return generate_level_cellular_automata()
+
+    # up stairs
+    level[x, y] = Tile('up stairs')
+    level.up_stairs_pos = Pos(x, y)
+
+    # down stairs
+    x, y = get_random_passable_position(level)
+    level[x, y] = Tile('down stairs')
+    level.down_stairs_pos = Pos(x, y)
 
     for x in range(0, level.width):
         for y in range(0, level.height):

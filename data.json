@@ -1,4 +1,10 @@
 {
+	"player": {
+			"name": "player",
+			"char": "@",
+			"color": "white"
+	},
+
 	"mobs": [
 		{
 			"name": "orc",

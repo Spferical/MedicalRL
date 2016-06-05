@@ -10,3 +10,7 @@ class Mob(object):
         """
         self.pos = pos
         self.info = info
+
+
+class Player(Mob):
+    dungeon_level = 0
