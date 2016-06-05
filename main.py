@@ -39,9 +39,11 @@ class Game(object):
 
     def attempt_player_move(self, direction):
         player = self.world.player
-        self.world.player.pos += Pos(direction)
+        new_pos = player.pos + Pos(direction)
+        if not self.world.levels[player.dungeon_level][new_pos].blocked:
+            player.pos = new_pos
         events.events.handle_event(
-            events.Event(events.EventType.MOVE, self.world.player))
+            events.Event(events.EventType.MOVE, player))
         self.update_fov()
 
     def run(self):

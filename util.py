@@ -20,3 +20,9 @@ class Pos(object):
 
     def __str__(self):
         return "({}, {})".format(self.x, self.y)
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, i):
+        return (self.x, self.y)[i]
