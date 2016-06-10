@@ -25,9 +25,8 @@ class Tile(object):
 
 
 class TileInfo(object):
-    def __init__(self, x, y, tile):
-        self.x = x
-        self.y = y
+    def __init__(self, pos, tile):
+        self.pos = pos
         self.tile = tile
 
 
@@ -39,7 +38,10 @@ class Level(object):
                        for y in range(height)]
                       for x in range(width)]
         self.up_stairs_pos = self.down_stairs_pos = None
-        self.mobs = []
+        self.mobs = {}
+
+    def get_mob(self, pos):
+        return self.mobs.get(pos, None)
 
     def __getitem__(self, key):
         x, y = key
@@ -70,7 +72,7 @@ def populate_level(num, level):
     spawnable_mob_infos = [mob for mob in mobinfo if num in mob["dlevels"]]
     for i in range(100):
         pos = get_random_passable_position(level)
-        level.mobs.append(mob.Mob(pos, random.choice(spawnable_mob_infos)))
+        level.mobs[pos] = mob.Mob(pos, random.choice(spawnable_mob_infos))
 
 
 def lock_number(x, min_x, max_x):
@@ -115,7 +117,7 @@ def reveal_tile(level, x, y):
     events.events.handle_event(
         events.Event(
             events.EventType.TILE_REVEALED,
-            TileInfo(x, y, level[x, y])))
+            TileInfo(Pos(x, y), level[x, y])))
 
 
 def dig(level, x, y):

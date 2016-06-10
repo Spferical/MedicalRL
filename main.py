@@ -13,9 +13,11 @@ class Game(object):
     def __init__(self):
         self.render = render.Renderer()
         self.world = world.World()
-        self.render.render()
         events.events.do_move_event(self.world.player, None)
+        events.events.add_callback(
+            events.EventType.TILE_REVEALED, self.handle_tile_reveal)
         self.update_fov()
+        self.render.render(self.world)
 
     def handle_input(self):
         key = tcod.Key()
@@ -31,10 +33,14 @@ class Game(object):
         pos = self.world.player.pos
         level = self.world.levels[self.world.player.dungeon_level]
         for pos in fov.calculate_fov(pos, FOV_RADIUS, level):
-            tile_info = world.TileInfo(pos.x, pos.y, level[pos.x, pos.y])
+            tile_info = world.TileInfo(pos, level[pos.x, pos.y])
             events.events.handle_event(
                 events.Event(
                     events.EventType.TILE_REVEALED, tile_info))
+
+    def handle_tile_reveal(self, event):
+        level = self.world.levels[self.world.player.dungeon_level]
+        level[event.info.pos].explored = True
 
     def attempt_player_move(self, direction):
         player = self.world.player
@@ -48,7 +54,7 @@ class Game(object):
     def run(self):
         while self.alive and not tcod.console_is_window_closed():
             self.handle_input()
-            self.render.render()
+            self.render.render(self.world)
 
 
 def main():
