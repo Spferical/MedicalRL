@@ -9,7 +9,10 @@
 		{
 			"name": "orc",
 			"char": "o",
-			"color": "white"
+			"color": "white",
+            "hp": 10,
+            "faction": "orc",
+            "dlevels": [0]
 		}
 	]
 }

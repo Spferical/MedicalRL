@@ -8,10 +8,16 @@ class EventType(Enum):
     TILE_REVEALED = 4
 
 
+class MoveInfo(object):
+    def __init__(self, mob, prev_pos):
+        self.mob = mob
+        self.prev_pos = prev_pos
+
+
 class Event(object):
-    def __init__(self, event_type, entity):
+    def __init__(self, event_type, info):
         self.event_type = event_type
-        self.entity = entity
+        self.info = info
 
 
 class EventHandler(object):
@@ -24,5 +30,9 @@ class EventHandler(object):
     def handle_event(self, event):
         for callback in self.callbacks[event.event_type]:
             callback(event)
+
+    def do_move_event(self, mob, prev_pos):
+        info = MoveInfo(mob, prev_pos)
+        self.handle_event(Event(EventType.MOVE, info))
 
 events = EventHandler()

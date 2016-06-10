@@ -6,6 +6,9 @@ class Pos(object):
             self.x = x_or_tuple
             self.y = y
 
+    def __eq__(self, pos):
+        return self[:] == pos[:]
+
     def __add__(self, pos):
         return Pos(self.x + pos.x, self.y + pos.y)
 
@@ -18,7 +21,7 @@ class Pos(object):
     def __floordiv__(self, num):
         return Pos(self.x // num, self.y // num)
 
-    def __str__(self):
+    def __repr__(self):
         return "Pos({}, {})".format(self.x, self.y)
 
     def __len__(self):
@@ -26,3 +29,6 @@ class Pos(object):
 
     def __getitem__(self, i):
         return (self.x, self.y)[i]
+
+    def __hash__(self):
+        return hash(repr(self))

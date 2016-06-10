@@ -39,6 +39,7 @@ class Level(object):
                        for y in range(height)]
                       for x in range(width)]
         self.up_stairs_pos = self.down_stairs_pos = None
+        self.mobs = []
 
     def __getitem__(self, key):
         x, y = key
@@ -60,7 +61,16 @@ class Level(object):
 class World(object):
     def __init__(self):
         self.levels = [generate_level_cellular_automata()]
+        for i, level in enumerate(self.levels):
+            populate_level(i, level)
         self.player = mob.Player(self.levels[0].up_stairs_pos, player_info)
+
+
+def populate_level(num, level):
+    spawnable_mob_infos = [mob for mob in mobinfo if num in mob["dlevels"]]
+    for i in range(100):
+        pos = get_random_passable_position(level)
+        level.mobs.append(mob.Mob(pos, random.choice(spawnable_mob_infos)))
 
 
 def lock_number(x, min_x, max_x):
@@ -202,7 +212,7 @@ def get_random_passable_position(level):
     while level[x, y].blocked:
         x = random.randint(1, level.width - 1)
         y = random.randint(1, level.height - 1)
-    return (x, y)
+    return Pos(x, y)
 
 
 def generate_level_cellular_automata():

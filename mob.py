@@ -1,3 +1,4 @@
+import events
 import render
 
 
@@ -10,6 +11,7 @@ class Mob(object):
         """
         self.pos = pos
         self.info = info
+        events.events.do_move_event(self, None)
 
 
 class Player(Mob):
