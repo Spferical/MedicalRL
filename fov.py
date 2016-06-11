@@ -17,6 +17,7 @@ QUAD_TRANSFORMATIONS = [
 def calculate_fov(pos, radius, level):
     """Calculates FOV radiating from given position with given radius.
     Yields positions that can be seen."""
+    yield(pos)
     for quadrant in range(8):
         for seen_pos in cast_light(pos, 1, 0, 1, radius, quadrant, level):
             yield(seen_pos)

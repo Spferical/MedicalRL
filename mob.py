@@ -16,3 +16,7 @@ class Mob(object):
 
 class Player(Mob):
     dungeon_level = 0
+    tiles_in_sight = set()
+
+    def can_see(self, pos):
+        return pos in self.tiles_in_sight

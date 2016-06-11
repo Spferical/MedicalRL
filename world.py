@@ -25,9 +25,10 @@ class Tile(object):
 
 
 class TileInfo(object):
-    def __init__(self, pos, tile):
+    def __init__(self, pos, tile, mob=None):
         self.pos = pos
         self.tile = tile
+        self.mob = mob
 
 
 class Level(object):
@@ -113,11 +114,11 @@ def floors_in_or_by_rect(level, x1, y1, x2, y2):
     return False
 
 
-def reveal_tile(level, x, y):
+def reveal_tile(level, pos):
     events.events.handle_event(
         events.Event(
             events.EventType.TILE_REVEALED,
-            TileInfo(Pos(x, y), level[x, y])))
+            TileInfo(pos, level[pos], level.get_mob(pos))))
 
 
 def dig(level, x, y):

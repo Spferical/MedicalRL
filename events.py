@@ -6,6 +6,7 @@ class EventType(Enum):
     DAMAGE = 2
     MOVE = 3
     TILE_REVEALED = 4
+    TILE_HIDDEN = 5
 
 
 class MoveInfo(object):
