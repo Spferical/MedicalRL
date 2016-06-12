@@ -35,7 +35,7 @@ class Level(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Tile('wall', blocked=True, opaque=True)
+        self.tiles = [[Tile('stone wall', blocked=True, opaque=True)
                        for y in range(height)]
                       for x in range(width)]
         self.up_stairs_pos = self.down_stairs_pos = None
@@ -47,7 +47,7 @@ class Level(object):
     def __getitem__(self, key):
         x, y = key
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
-            return Tile('wall', blocked=True, opaque=True)
+            return Tile('stone wall', blocked=True, opaque=True)
         return self.tiles[x][y]
 
     def __setitem__(self, key, value):
@@ -109,7 +109,7 @@ def mul(vec, scalar):
 def floors_in_or_by_rect(level, x1, y1, x2, y2):
     for x in range(x1 - 1, x2 + 2):
         for y in range(y1 - 1, y2 + 2):
-            if level[x, y].name != 'wall':
+            if level[x, y].name != 'stone wall':
                 return True
     return False
 
@@ -122,11 +122,11 @@ def reveal_tile(level, pos):
 
 
 def dig(level, x, y):
-    level[x, y] = Tile('floor')
+    level[x, y] = Tile('stone floor')
 
 
 def undig(level, x, y):
-    level[x, y] = Tile('wall', blocked=True, opaque=True)
+    level[x, y] = Tile('stone wall', blocked=True, opaque=True)
 
 
 def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
@@ -168,7 +168,7 @@ def generate_level():
     for i in range(3000):
         pos = (random.randint(0, width), random.randint(0, height))
         for direction in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-            if level[add(pos, direction)].name == 'floor':
+            if level[add(pos, direction)].name == 'stone floor':
                 direction = mul(direction, -1)
                 if random.random() < 0.5 and \
                         try_to_dig_room(level, pos, direction) or \
