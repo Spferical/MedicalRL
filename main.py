@@ -40,6 +40,7 @@ class Game(object):
             events.events.handle_event(
                 events.Event(
                     events.EventType.TILE_HIDDEN, tile_info))
+
         for pos in new_fov.difference(player.tiles_in_sight):
             world.reveal_tile(level, pos)
 

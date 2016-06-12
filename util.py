@@ -31,4 +31,4 @@ class Pos(object):
         return (self.x, self.y)[i]
 
     def __hash__(self):
-        return hash(repr(self))
+        return hash((self.x, self.y))
