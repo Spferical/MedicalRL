@@ -250,7 +250,7 @@ def generate_level_cellular_automata():
     # now, apply CA
     for i in range(1):
         walls = [[len(list(filled_a_tiles_away(walls, x, y, 1, True))) >= 5 or
-                      len(list(filled_a_tiles_away(walls, x, y, 3, True))) <= 1
+                      len(list(filled_a_tiles_away(walls, x, y, 3, True))) == 0
                       for y in range(level.height)]
                      for x in range(level.width)]
         for x in range(level.width):
