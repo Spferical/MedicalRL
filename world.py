@@ -218,28 +218,61 @@ def get_random_passable_position(level):
     return Pos(x, y)
 
 
+def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
+    def outside(x, y):
+        return not 0 <= x1 < len(grid) or not 0 <= y1 < len(grid[0]) \
+    # manhattan distance
+    for x1 in range(x - a, x + a + 1):
+        for y1 in (y - a, y + a):
+            if outside(x1, y1):
+                if outside_filled:
+                    yield(x1, y1)
+            elif grid[x1][y1]:
+                yield (x1, y1)
+    for y1 in range(y - a + 1, y + a):
+        for x1 in (x - a, x + a):
+            if outside(x1, y1):
+                if outside_filled:
+                    yield(x1, y1)
+            elif grid[x1][y1]:
+                yield (x1, y1)
+
+
 def generate_level_cellular_automata():
     width = constants.MAP_WIDTH
     height = constants.MAP_HEIGHT
     level = Level(width, height)
     # random initial distribution
-    for x in range(level.width):
-        for y in range(level.height):
-            if random.randint(1, 100) < 45:
-                dig(level, x, y)
+    walls = [[random.randint(1, 100) < 45
+              for y in range(level.height)]
+             for x in range(level.width)]
 
     # now, apply CA
-    for i in range(4):
-        new_walls = [[len(list(walls_a_tiles_away(level, x, y, 1))) >= 5 or
-                      len(list(walls_a_tiles_away(level, x, y, 3))) <= 1
+    for i in range(1):
+        walls = [[len(list(filled_a_tiles_away(walls, x, y, 1, True))) >= 5 or
+                      len(list(filled_a_tiles_away(walls, x, y, 3, True))) <= 1
                       for y in range(level.height)]
                      for x in range(level.width)]
         for x in range(level.width):
             for y in range(level.height):
-                if new_walls[x][y]:
+                if walls[x][y]:
                     undig(level, x, y)
                 else:
                     dig(level, x, y)
+
+    # lakes and rivers
+    # separate cellular automata
+    water = [[random.randint(1, 100) < 45
+              for y in range(level.height)]
+             for x in range(level.width)]
+    for i in range(5):
+        water = [[len(list(filled_a_tiles_away(water, x, y, 1))) >= 5
+                      for y in range(level.height)]
+                     for x in range(level.width)]
+    for x in range(level.width):
+        for y in range(level.height):
+            if water[x][y]:
+                level[x, y] = Tile('water', blocked=True)
 
     # detect and delete floors outside of main cavern to prevent inaccessable
     # areas
@@ -249,6 +282,7 @@ def generate_level_cellular_automata():
     if len(tiles) < .20 * level.width * level.height:
         # the cave generated was too small!
         # try again
+        print("Cave too small. Retrying mapgen...")
         return generate_level_cellular_automata()
 
     # up stairs
@@ -262,6 +296,6 @@ def generate_level_cellular_automata():
 
     for x in range(0, level.width):
         for y in range(0, level.height):
-            if (x, y) not in tiles:
+            if (x, y) not in tiles and not level[x, y].blocked:
                 undig(level, x, y)
     return level

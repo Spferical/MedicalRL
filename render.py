@@ -130,7 +130,8 @@ drawables = {
     "floor": Drawable('.', tcod.white, bg=tcod.black),
     "up stairs": Drawable('<', tcod.white, bg=tcod.black),
     "down stairs": Drawable('>', tcod.white, bg=tcod.black),
-    "unknown": Drawable(' ', tcod.white, bg=tcod.black)
+    "unknown": Drawable(' ', tcod.white, bg=tcod.black),
+    "water": Drawable('~', tcod.blue, bg=tcod.darkest_blue)
 }
 
 drawables["player"] = create_drawable_from_json(world.data["player"])
