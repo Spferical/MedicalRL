@@ -1,5 +1,4 @@
 import events
-import render
 
 
 class Mob(object):

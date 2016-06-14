@@ -1,6 +1,6 @@
 import tcod
-import render
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH, DIRECTION_KEYS, FOV_RADIUS
+import ui
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH, FOV_RADIUS
 import events
 import fov
 from util import Pos
@@ -11,23 +11,13 @@ class Game(object):
     alive = True
 
     def __init__(self):
-        self.render = render.Renderer()
+        self.ui = ui.UI()
         self.world = world.World()
         events.events.add_callback(
             events.EventType.TILE_REVEALED, self.handle_tile_reveal)
         self.update_fov()
         events.events.do_move_event(self.world.player, None)
-        self.render.render()
-
-    def handle_input(self):
-        key = tcod.Key()
-        mouse = tcod.Mouse()
-        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE,
-                                 key, mouse)
-        if key.c:
-            char = chr(key.c)
-            if char in DIRECTION_KEYS:
-                self.attempt_player_move(DIRECTION_KEYS[char])
+        self.ui.update(self)
 
     def update_fov(self):
         player = self.world.player
@@ -61,8 +51,7 @@ class Game(object):
 
     def run(self):
         while self.alive and not tcod.console_is_window_closed():
-            self.handle_input()
-            self.render.render()
+            self.ui.update(self)
 
 
 def main():

@@ -1,6 +1,6 @@
+from enum import Enum
 import tcod
-import time
-from constants import MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT
+from constants import MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT, DIRECTION_KEYS
 import events
 from util import Pos
 import world
@@ -27,11 +27,18 @@ class TileMemory(object):
         self.mob = mob
 
 
-class Renderer(object):
-    """Renders everything."""
+class States(Enum):
+    DEFAULT = 1
+    EXAMINE = 2
+
+
+class UI(object):
+    """Handles rendering and input."""
+    state = States.DEFAULT
+
     def __init__(self):
         self.map = tcod.console_new(MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT)
-        self.player_pos = Pos(0, 0)
+        self.center_pos = Pos(0, 0)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
         events.events.add_callback(events.EventType.TILE_REVEALED,
@@ -40,6 +47,41 @@ class Renderer(object):
                                    self.handle_hidden)
         self.memory = {}
         self.vision = set()
+
+    def update(self, game):
+        self.handle_input(game)
+        self.render()
+
+    def handle_input(self, game):
+        key = tcod.Key()
+        mouse = tcod.Mouse()
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE,
+                                 key, mouse)
+        if key.c:
+            char = chr(key.c)
+            if self.state == States.DEFAULT:
+                if char in DIRECTION_KEYS:
+                    game.attempt_player_move(DIRECTION_KEYS[char])
+                elif char == 'x':
+                    self.state = States.EXAMINE
+                    self.center_pos = game.world.player.pos
+                    self.draw_cursor(self.center_pos)
+            elif self.state == States.EXAMINE:
+                if char in DIRECTION_KEYS:
+                    self.move_examine(DIRECTION_KEYS[char])
+                    self.draw_cursor(self.center_pos)
+                elif key.vk == tcod.KEY_ESCAPE:
+                    self.state = States.DEFAULT
+                    self.center_pos = game.world.player.pos
+                    self.redraw_level()
+
+    def move_examine(self, direction):
+        self.center_pos += Pos(direction)
+        self.redraw_level()
+
+    def draw_cursor(self, map_pos):
+        x, y = self.get_map_window_pos(map_pos)
+        tcod.console_set_char_background(self.map, x, y, tcod.light_grey)
 
     def render(self):
         tcod.console_blit(self.map, 0, 0, MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT,
@@ -59,8 +101,9 @@ class Renderer(object):
         if event.info.mob.pos in self.vision:
             self.draw_tile(event.info.mob.pos)
 
-        if event.info.mob.info["name"] == 'player':
-            self.player_pos = event.info.mob.pos
+        if event.info.mob.info["name"] == 'player' \
+                and self.state == States.DEFAULT:
+            self.center_pos = event.info.mob.pos
             self.redraw_level()
 
     def handle_revealed(self, event):
@@ -68,7 +111,6 @@ class Renderer(object):
         self.vision.add(info.pos)
         self.memory[info.pos] = TileMemory(info.tile.name, info.mob)
         self.draw_tile(info.pos)
-        window_pos = self.get_map_window_pos(info.pos)
 
     def handle_hidden(self, event):
         self.vision.remove(event.info.pos)
@@ -84,11 +126,11 @@ class Renderer(object):
                 self.draw_tile(map_pos, window_pos)
 
     def get_map_window_pos(self, map_pos):
-        return map_pos - self.player_pos + \
+        return map_pos - self.center_pos + \
             Pos(MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT) // 2
 
     def get_map_pos(self, world_pos):
-        return world_pos + self.player_pos - \
+        return world_pos + self.center_pos - \
             Pos(MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT) // 2
 
     def draw_mob(self, mob):
@@ -131,7 +173,7 @@ drawables = {
     "up stairs": Drawable('<', tcod.white, bg=tcod.black),
     "down stairs": Drawable('>', tcod.white, bg=tcod.black),
     "unknown": Drawable(' ', tcod.white, bg=tcod.black),
-    "water": Drawable('~', tcod.blue, bg=tcod.darkest_blue)
+    "water": Drawable('~', tcod.blue, bg=tcod.darkest_blue),
 }
 
 drawables["player"] = create_drawable_from_json(world.data["player"])
