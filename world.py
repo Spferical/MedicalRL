@@ -220,7 +220,7 @@ def get_random_passable_position(level):
 
 def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
     def outside(x, y):
-        return not 0 <= x1 < len(grid) or not 0 <= y1 < len(grid[0]) \
+        return not 0 <= x1 < len(grid) or not 0 <= y1 < len(grid[0])
     # manhattan distance
     for x1 in range(x - a, x + a + 1):
         for y1 in (y - a, y + a):
@@ -250,9 +250,9 @@ def generate_level_cellular_automata():
     # now, apply CA
     for i in range(1):
         walls = [[len(list(filled_a_tiles_away(walls, x, y, 1, True))) >= 5 or
-                      len(list(filled_a_tiles_away(walls, x, y, 3, True))) == 0
-                      for y in range(level.height)]
-                     for x in range(level.width)]
+                  len(list(filled_a_tiles_away(walls, x, y, 3, True))) == 0
+                  for y in range(level.height)]
+                 for x in range(level.width)]
         for x in range(level.width):
             for y in range(level.height):
                 if walls[x][y]:
@@ -267,8 +267,8 @@ def generate_level_cellular_automata():
              for x in range(level.width)]
     for i in range(5):
         water = [[len(list(filled_a_tiles_away(water, x, y, 1))) >= 5
-                      for y in range(level.height)]
-                     for x in range(level.width)]
+                  for y in range(level.height)]
+                 for x in range(level.width)]
     for x in range(level.width):
         for y in range(level.height):
             if water[x][y]:
