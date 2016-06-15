@@ -274,6 +274,19 @@ def generate_level_cellular_automata():
             if water[x][y]:
                 level[x, y] = Tile('water', blocked=True)
 
+    # grass
+    grass = [[random.randint(1, 100) < 50
+              for y in range(level.height)]
+             for x in range(level.width)]
+    for i in range(5):
+        grass = [[len(list(filled_a_tiles_away(grass, x, y, 1))) >= 5
+                  for y in range(level.height)]
+                 for x in range(level.width)]
+    for x in range(level.width):
+        for y in range(level.height):
+            if grass[x][y] and not level[x, y].blocked:
+                level[x, y] = Tile('grass', blocked=False)
+
     # detect and delete floors outside of main cavern to prevent inaccessable
     # areas
     x, y = get_random_passable_position(level)

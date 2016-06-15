@@ -174,6 +174,7 @@ drawables = {
     "down stairs": Drawable('>', tcod.white, bg=tcod.black),
     "unknown": Drawable(' ', tcod.white, bg=tcod.black),
     "water": Drawable('~', tcod.blue, bg=tcod.darkest_blue),
+    "grass": Drawable(',', tcod.green, bg=tcod.darkest_green),
 }
 
 drawables["player"] = create_drawable_from_json(world.data["player"])
