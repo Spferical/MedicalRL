@@ -1,9 +1,11 @@
+import random
 import tcod
 import ui
 from constants import SCREEN_HEIGHT, SCREEN_WIDTH, FOV_RADIUS
 import events
 import fov
-from util import Pos
+from mob import MobState
+import path
 import world
 
 
@@ -17,7 +19,11 @@ class Game(object):
             events.EventType.TILE_REVEALED, self.handle_tile_reveal)
         self.update_fov()
         events.events.do_move_event(self.world.player, None)
-        self.ui.update(self)
+        self.ui.render()
+
+    @property
+    def player_level(self):
+        return self.world.levels[self.world.player.dungeon_level]
 
     def update_fov(self):
         player = self.world.player
@@ -36,22 +42,46 @@ class Game(object):
 
         player.tiles_in_sight = new_fov
 
+    def update_mobs(self):
+        level = self.player_level
+        for mob in level.mobs.values():
+            self.update_mob(mob, level)
+
+    def update_mob(self, mob, level):
+        if mob.state == MobState.WANDERING:
+            if mob.wander_destination is None or \
+                    mob.wander_destination == mob.pos:
+                visible = list(fov.calculate_fov(mob.pos, 5, level))
+                visible = list(pos for pos in visible
+                               if not level[pos].blocked)
+                mob.wander_destination = random.choice(visible)
+            wander_path = path.get_path(
+                mob.pos, mob.wander_destination, level)
+            if wander_path:
+                mob.move_to(wander_path[0])
+                if mob.wander_destination == mob.pos:
+                    mob.state = MobState.IDLE
+
     def handle_tile_reveal(self, event):
         level = self.world.levels[self.world.player.dungeon_level]
         level[event.info.pos].explored = True
 
     def attempt_player_move(self, direction):
+        """Returns True if player successfully moved."""
         player = self.world.player
         old_pos = player.pos
-        new_pos = player.pos + Pos(direction)
+        new_pos = player.pos + direction
         if not self.world.levels[player.dungeon_level][new_pos].blocked:
             player.pos = new_pos
             events.events.do_move_event(player, old_pos)
             self.update_fov()
+            return True
 
     def run(self):
         while self.alive and not tcod.console_is_window_closed():
-            self.ui.update(self)
+            if self.ui.handle_input(self):
+                self.update_mobs()
+            self.ui.render()
 
 
 def main():

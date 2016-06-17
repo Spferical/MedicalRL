@@ -48,11 +48,8 @@ class UI(object):
         self.memory = {}
         self.vision = set()
 
-    def update(self, game):
-        self.handle_input(game)
-        self.render()
-
     def handle_input(self, game):
+        """Returns true if an action was taken."""
         key = tcod.Key()
         mouse = tcod.Mouse()
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE,
@@ -61,7 +58,7 @@ class UI(object):
             char = chr(key.c)
             if self.state == States.DEFAULT:
                 if char in DIRECTION_KEYS:
-                    game.attempt_player_move(DIRECTION_KEYS[char])
+                    return game.attempt_player_move(DIRECTION_KEYS[char])
                 elif char == 'x':
                     self.state = States.EXAMINE
                     self.center_pos = game.world.player.pos
