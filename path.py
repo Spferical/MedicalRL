@@ -1,3 +1,4 @@
+import heapq
 from constants import DIRECTIONS
 
 
@@ -9,12 +10,25 @@ def get_path(from_pos, to_pos, level):
         adjacent = (source_pos + direction for direction in DIRECTIONS)
         return (pos for pos in adjacent if not level[pos].blocked)
 
-    def unwrap(wrapped_path):
-        unwrapped_path = []
-        while wrapped_path:
-            unwrapped_path.insert(0, wrapped_path[0])
-            wrapped_path = wrapped_path[1]
-        return unwrapped_path
+    def heuristic(pos):
+        return min(abs(pos.x - to_pos.x), abs(pos.y - to_pos.y))
+
+    class Node(object):
+        def __init__(self, pos, parent=None):
+            self.pos = pos
+            self.priority = heuristic(pos)
+            self.parent = parent
+
+        def get_path(self):
+            path = []
+            node = self
+            while node:
+                path.insert(0, node.pos)
+                node = node.parent
+            return path
+
+        def __lt__(self, other):
+            return self.priority < other.priority
 
     found = set([from_pos])
     starts = list(get_walkable_adjacent_tiles(from_pos))
@@ -22,14 +36,17 @@ def get_path(from_pos, to_pos, level):
     if to_pos in starts:
         return [to_pos]
 
-    queue = [(pos, None) for pos in starts]
+    queue = []
+    for pos in starts:
+        heapq.heappush(queue, Node(pos))
+
     while queue:
-        pos, hist = queue.pop(0)
-        for new_pos in get_walkable_adjacent_tiles(pos):
+        node = heapq.heappop(queue)
+        for new_pos in get_walkable_adjacent_tiles(node.pos):
             if new_pos in found:
                 continue
             if new_pos == to_pos:
-                return unwrap((new_pos, (pos, hist)))
-            queue.append((new_pos, (pos, hist)))
+                return Node(new_pos, node).get_path()
+            heapq.heappush(queue, Node(new_pos, node))
             found.add(new_pos)
     return []
