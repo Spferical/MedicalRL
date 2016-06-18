@@ -1,8 +1,8 @@
 {
 	"player": {
-			"name": "player",
-			"char": "@",
-			"color": "white"
+		"name": "player",
+		"char": "@",
+		"color": "white"
 	},
 
 	"mobs": [
@@ -10,9 +10,9 @@
 			"name": "orc",
 			"char": "o",
 			"color": "white",
-            "hp": 10,
-            "faction": "orc",
-            "dlevels": [0]
+			"hp": 10,
+			"faction": "orc",
+			"dlevels": [0]
 		}
 	]
 }
