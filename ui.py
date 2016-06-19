@@ -73,7 +73,7 @@ class UI(object):
                     self.redraw_level()
 
     def move_examine(self, direction):
-        self.center_pos += Pos(direction)
+        self.center_pos += direction
         self.redraw_level()
 
     def draw_cursor(self, map_pos):
