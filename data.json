@@ -5,17 +5,26 @@
 		"color": "white"
 	},
 
-    "factions": {
-        "orc": {
-            "groups": [
-                [
-                    "orc_captain",
-                    "orc",
-                    "orc"
-                ]
-            ]
-        }
-    },
+	"factions": {
+		"orc": {
+			"groups": [
+				[
+					"orc_captain",
+					"orc",
+					"orc"
+				]
+			]
+		},
+		"elf": {
+			"groups": [
+				[
+					"elf_captain",
+					"elf",
+					"elf"
+				]
+			]
+		}
+	},
 
 	"mobs": {
 		"orc": {
@@ -29,6 +38,18 @@
 			"char": "o",
 			"color": "light_red",
 			"hp": 12
+		},
+		"elf": {
+			"name": "elf",
+			"char": "e",
+			"color": "white",
+			"hp": 10
+		},
+		"elf_captain": {
+			"name": "elf captain",
+			"char": "e",
+			"color": "light_red",
+			"hp": 12
 		}
-    }
+	}
 }
