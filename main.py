@@ -49,17 +49,17 @@ class Game(object):
 
     def update_mob(self, mob, level):
         if mob.state == MobState.WANDERING:
-            if mob.wander_destination is None or \
-                    mob.wander_destination == mob.pos:
+            if mob.target is None or \
+                    mob.target == mob.pos:
                 visible = list(fov.calculate_fov(mob.pos, 5, level))
                 visible = list(pos for pos in visible
                                if not level[pos].blocked)
-                mob.wander_destination = random.choice(visible)
+                mob.target = random.choice(visible)
             wander_path = path.get_path(
-                mob.pos, mob.wander_destination, level)
+                mob.pos, mob.target, level)
             if wander_path:
                 mob.move_to(wander_path[0])
-                if mob.wander_destination == mob.pos:
+                if mob.target == mob.pos:
                     mob.state = MobState.IDLE
 
     def handle_tile_reveal(self, event):

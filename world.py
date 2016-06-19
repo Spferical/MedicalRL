@@ -1,8 +1,9 @@
+import json
 import math
 import random
 import constants
 import events
-import json
+import fov
 import mob
 from util import Pos
 
@@ -11,6 +12,7 @@ with open("data.json") as data:
     data = json.load(data)
     mobinfo = data['mobs']
     player_info = data['player']
+    factions = data['factions']
 
 
 class Tile(object):
@@ -70,10 +72,22 @@ class World(object):
 
 
 def populate_level(num, level):
-    spawnable_mob_infos = [mob for mob in mobinfo if num in mob["dlevels"]]
-    for i in range(100):
-        pos = get_random_passable_position(level)
-        level.mobs[pos] = mob.Mob(pos, random.choice(spawnable_mob_infos))
+    # generate a few groups of mobs
+    for i in range(10):
+        faction = random.choice(list(factions.keys()))
+        groups = factions[faction]['groups']
+        group = random.choice(groups)
+
+        # spawn leader at pos, spawn rest of mobs within fov
+        leader_info = mobinfo[group[0]]
+        leader_pos = get_random_passable_position(level)
+        level.mobs[leader_pos] = mob.Mob(leader_pos, leader_info)
+        tiles_in_sight = list(fov.calculate_fov(leader_pos, 5, level))
+        for mob_type in group[1:]:
+            info = mobinfo[mob_type]
+            pos = random.choice(tiles_in_sight)
+            tiles_in_sight.remove(pos)
+            level.mobs[pos] = mob.Mob(pos, info)
 
 
 def lock_number(x, min_x, max_x):

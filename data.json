@@ -5,14 +5,30 @@
 		"color": "white"
 	},
 
-	"mobs": [
-		{
+    "factions": {
+        "orc": {
+            "groups": [
+                [
+                    "orc_captain",
+                    "orc",
+                    "orc"
+                ]
+            ]
+        }
+    },
+
+	"mobs": {
+		"orc": {
 			"name": "orc",
 			"char": "o",
 			"color": "white",
-			"hp": 10,
-			"faction": "orc",
-			"dlevels": [0]
+			"hp": 10
+		},
+		"orc_captain": {
+			"name": "orc captain",
+			"char": "o",
+			"color": "light_red",
+			"hp": 12
 		}
-	]
+    }
 }

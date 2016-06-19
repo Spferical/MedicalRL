@@ -175,5 +175,5 @@ drawables = {
 }
 
 drawables["player"] = create_drawable_from_json(world.data["player"])
-for mob in world.data["mobs"]:
-    drawables[mob["name"]] = create_drawable_from_json(mob)
+for info in world.data["mobs"].values():
+    drawables[info['name']] = create_drawable_from_json(info)
