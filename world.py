@@ -46,6 +46,9 @@ class Level(object):
     def get_mob(self, pos):
         return self.mobs.get(pos, None)
 
+    def is_blocked(self, pos):
+        return self[pos].blocked or pos in self.mobs
+
     def __getitem__(self, key):
         x, y = key
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
@@ -81,13 +84,14 @@ def populate_level(num, level):
         # spawn leader at pos, spawn rest of mobs within fov
         leader_info = mobinfo[group[0]]
         leader_pos = get_random_passable_position(level)
-        level.mobs[leader_pos] = mob.Mob(leader_pos, leader_info)
-        tiles_in_sight = list(fov.calculate_fov(leader_pos, 5, level))
+        leader = level.mobs[leader_pos] = mob.Mob(leader_pos, leader_info)
+        tiles_in_sight = list(filter(lambda pos: not level.is_blocked(pos),
+                                     fov.calculate_fov(leader_pos, 5, level)))
         for mob_type in group[1:]:
             info = mobinfo[mob_type]
             pos = random.choice(tiles_in_sight)
             tiles_in_sight.remove(pos)
-            level.mobs[pos] = mob.Mob(pos, info)
+            level.mobs[pos] = mob.Mob(pos, info, leader=leader)
 
 
 def lock_number(x, min_x, max_x):
@@ -225,11 +229,12 @@ def flood_fill(level, x, y):
 
 
 def get_random_passable_position(level):
-    x = y = -1
-    while level[x, y].blocked:
+    pos = Pos(-1, -1)
+    while level.is_blocked(pos):
         x = random.randint(1, level.width - 1)
         y = random.randint(1, level.height - 1)
-    return Pos(x, y)
+        pos = Pos(x, y)
+    return pos
 
 
 def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
