@@ -51,16 +51,26 @@ class Game(object):
         if mob.state == MobState.WANDERING:
             if mob.target is None or \
                     mob.target == mob.pos:
-                visible = list(fov.calculate_fov(mob.pos, 5, level))
-                visible = list(pos for pos in visible
-                               if not level[pos].blocked)
-                mob.target = random.choice(visible)
+                if mob.leader and mob.leader.target:
+                    mob.target = mob.leader.target
+                else:
+                    visible = list(fov.calculate_fov(mob.pos, 5, level))
+                    visible = list(pos for pos in visible
+                                   if not level[pos].blocked)
+                    mob.target = random.choice(visible)
             wander_path = path.get_path(
                 mob.pos, mob.target, level)
             if wander_path:
                 mob.move_to(wander_path[0])
-                if mob.target == mob.pos:
+                if mob.pos.distance(mob.target) <= 2:
                     mob.state = MobState.IDLE
+        elif mob.state == MobState.IDLE:
+            if mob.leader is None:
+                if random.randint(1, 10) == 1:
+                    mob.state = MobState.WANDERING
+            else:
+                if mob.leader and mob.leader.state != MobState.IDLE:
+                    mob.state = mob.leader.state
 
     def handle_tile_reveal(self, event):
         level = self.world.levels[self.world.player.dungeon_level]

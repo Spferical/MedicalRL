@@ -32,3 +32,9 @@ class Pos(object):
 
     def __hash__(self):
         return hash((self.x, self.y))
+
+    def __abs__(self):
+        return abs(self.x) + abs(self.y)
+
+    def distance(self, other):
+        return abs(self - other)

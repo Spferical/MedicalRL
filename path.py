@@ -3,12 +3,13 @@ from constants import DIRECTIONS
 
 
 def get_path(from_pos, to_pos, level):
-    if level[to_pos].blocked:
+    if level[to_pos].blocked or from_pos == to_pos:
         return []
 
     def get_walkable_adjacent_tiles(source_pos):
         adjacent = (source_pos + direction for direction in DIRECTIONS)
-        return (pos for pos in adjacent if not level[pos].blocked)
+        return (pos for pos in adjacent if pos not in found and
+                (pos == to_pos or not level.is_blocked(pos)))
 
     def heuristic(pos):
         return min(abs(pos.x - to_pos.x), abs(pos.y - to_pos.y))
