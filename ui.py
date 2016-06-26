@@ -3,6 +3,7 @@ import tcod
 from constants import MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT, DIRECTION_KEYS, \
     MESSAGE_WINDOW_WIDTH, MESSAGE_WINDOW_HEIGHT
 import events
+from mob import MobState
 from util import Pos
 import world
 
@@ -31,6 +32,16 @@ class TileMemory(object):
 class States(Enum):
     DEFAULT = 1
     EXAMINE = 2
+
+
+MOB_STATE_DESCRIPTIONS = {
+    MobState.WANDERING: 'wandering',
+    MobState.IDLE: 'idle',
+}
+
+
+def get_article(word):
+    return 'an' if word[0] in 'aeiou' else 'a'
 
 
 class UI(object):
@@ -97,13 +108,14 @@ class UI(object):
         self.redraw_level()
         memory = self.memory.get(self.center_pos, None)
         seen = self.center_pos in self.vision
-        vowels = 'aeiouy'
         if memory:
             start = "You see " if seen else "You remember "
             if memory.mob:
                 name = memory.mob.info['name']
-                article = 'an' if name[0] in vowels else 'a'
-                self.message(start + article + ' ' + name + '.',
+                state = MOB_STATE_DESCRIPTIONS[memory.mob.state] + ' ' \
+                    if memory.mob.state in MOB_STATE_DESCRIPTIONS else ''
+                article = get_article(state if state else name)
+                self.message(start + article + ' ' + state + name + '.',
                              tcod.light_grey)
             else:
                 self.message(start + memory.tile_name + '.', tcod.light_grey)
