@@ -1,6 +1,7 @@
 from enum import Enum
 import tcod
-from constants import MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT, DIRECTION_KEYS
+from constants import MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT, DIRECTION_KEYS, \
+    MESSAGE_WINDOW_WIDTH, MESSAGE_WINDOW_HEIGHT
 import events
 from util import Pos
 import world
@@ -38,6 +39,8 @@ class UI(object):
 
     def __init__(self):
         self.map = tcod.console_new(MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT)
+        self.messages_window = tcod.console_new(
+            MESSAGE_WINDOW_WIDTH, MESSAGE_WINDOW_HEIGHT)
         self.center_pos = Pos(0, 0)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
@@ -47,6 +50,7 @@ class UI(object):
                                    self.handle_hidden)
         self.memory = {}
         self.vision = set()
+        self.message_lines = []
 
     def handle_input(self, game):
         """Returns true if an action was taken."""
@@ -63,6 +67,8 @@ class UI(object):
                     self.state = States.EXAMINE
                     self.center_pos = game.world.player.pos
                     self.draw_cursor(self.center_pos)
+                elif char == '.':
+                    return True
             elif self.state == States.EXAMINE:
                 if char in DIRECTION_KEYS:
                     self.move_examine(DIRECTION_KEYS[char])
@@ -72,9 +78,37 @@ class UI(object):
                     self.center_pos = game.world.player.pos
                     self.redraw_level()
 
+    def message(self, message, color=tcod.white):
+        self.message_lines.append((message, color))
+        if len(self.message_lines) > MESSAGE_WINDOW_HEIGHT:
+            self.message_lines.pop(0)
+        self.draw_messages()
+
+    def draw_messages(self):
+        tcod.console_clear(self.messages_window)
+        y = 0
+        for (line, color) in self.message_lines:
+            tcod.console_set_default_foreground(self.messages_window, color)
+            tcod.console_print(self.messages_window, 0, y, line)
+            y += 1
+
     def move_examine(self, direction):
         self.center_pos += direction
         self.redraw_level()
+        memory = self.memory.get(self.center_pos, None)
+        seen = self.center_pos in self.vision
+        vowels = 'aeiouy'
+        if memory:
+            start = "You see " if seen else "You remember "
+            if memory.mob:
+                name = memory.mob.info['name']
+                article = 'an' if name[0] in vowels else 'a'
+                self.message(start + article + ' ' + name + '.',
+                             tcod.light_grey)
+            else:
+                self.message(start + memory.tile_name + '.', tcod.light_grey)
+        else:
+            self.message("You cannot see that location.", tcod.light_grey)
 
     def draw_cursor(self, map_pos):
         x, y = self.get_map_window_pos(map_pos)
@@ -83,6 +117,9 @@ class UI(object):
     def render(self):
         tcod.console_blit(self.map, 0, 0, MAP_WINDOW_WIDTH, MAP_WINDOW_HEIGHT,
                           0, 0, 0)
+        tcod.console_blit(self.messages_window, 0, 0,
+                          MESSAGE_WINDOW_WIDTH, MESSAGE_WINDOW_HEIGHT,
+                          0, MESSAGE_WINDOW_WIDTH, 0)
         tcod.console_flush()
 
     def handle_move(self, event):
