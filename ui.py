@@ -237,18 +237,19 @@ class UI(object):
         tcod.console_flush()
 
     def handle_move(self, event):
+        # remove mob from previous memory position if we saw him leave
         memory = self.memory.get(event.info.prev_pos, None)
-        if memory:
+        if memory and event.info.prev_pos in self.vision:
             memory.mob = None
-        if event.info.prev_pos in self.vision:
             self.draw_tile(event.info.prev_pos)
 
+        # add mob to new memory position if we saw him enter
         memory = self.memory.get(event.info.mob.pos, None)
-        if memory:
+        if memory and event.info.mob.pos in self.vision:
             memory.mob = event.info.mob
-        if event.info.mob.pos in self.vision:
             self.draw_tile(event.info.mob.pos)
 
+        # recenter/redraw everything if it was the player who moved
         if event.info.mob.info["name"] == 'player' \
                 and self.state == States.DEFAULT:
             self.map_window.center(event.info.mob.pos)
