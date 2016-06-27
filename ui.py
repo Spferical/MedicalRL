@@ -157,6 +157,9 @@ class UI(object):
         self.vision.add(info.pos)
         self.memory[info.pos] = TileMemory(info.tile.name, info.mob)
         self.draw_tile(info.pos)
+        if info.mob:
+            self.messages_window.message(
+                "You see " + get_short_mob_description(info.mob))
 
     def handle_hidden(self, event):
         self.vision.remove(event.info.pos)
