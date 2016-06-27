@@ -64,6 +64,9 @@ class Window(object):
                           self.width, self.height,
                           0, self.x, self.y)
 
+    def clear(self):
+        tcod.console_clear(self.console)
+
     def draw(self):
         pass
 
@@ -98,7 +101,7 @@ class MapWindow(Window):
             Pos(self.width, self.height) // 2
 
     def redraw_level(self, memory, vision):
-        tcod.console_clear(self.console)
+        self.clear()
         map_offset = self.get_map_pos(Pos(0, 0))
         for x in range(0, self.width):
             for y in range(0, self.height):
@@ -135,12 +138,26 @@ class MessagesWindow(Window):
         self.draw_messages()
 
     def draw_messages(self):
-        tcod.console_clear(self.console)
+        self.clear()
         y = 0
         for (line, color) in self.message_lines:
             tcod.console_set_default_foreground(self.console, color)
             tcod.console_print(self.console, 0, y, line)
             y += 1
+
+
+class ExamineWindow(Window):
+    def examine(self, memory):
+        self.clear()
+        if memory is None:
+            return
+        if memory.mob:
+            drawables[memory.mob.info['name']].draw(self.console, Pos(1, 1))
+            tcod.console_print(self.console, 3, 1,
+                               get_short_mob_description(memory.mob))
+        else:
+            drawables[memory.tile_name].draw(self.console, Pos(1, 1))
+            tcod.console_print(self.console, 3, 1, memory.tile_name)
 
 
 class UI(object):
@@ -151,7 +168,10 @@ class UI(object):
         self.map_window = MapWindow(
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT)
         self.messages_window = MessagesWindow(
-            SCREEN_WIDTH // 2, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT)
+            SCREEN_WIDTH // 2, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.examine_window = ExamineWindow(
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
         events.events.add_callback(events.EventType.TILE_REVEALED,
@@ -176,6 +196,7 @@ class UI(object):
                     self.state = States.EXAMINE
                     self.map_window.center(game.world.player.pos)
                     self.map_window.draw_cursor_at_center()
+                    self.examine_pos(game.world.player.pos)
                 elif char == '.':
                     return True
             elif self.state == States.EXAMINE:
@@ -183,10 +204,16 @@ class UI(object):
                     self.map_window.move(DIRECTION_KEYS[char])
                     self.map_window.redraw_level(self.memory, self.vision)
                     self.map_window.draw_cursor_at_center()
+                    self.examine_pos(self.map_window.center_pos)
                 elif key.vk == tcod.KEY_ESCAPE:
                     self.state = States.DEFAULT
                     self.map_window.center(game.world.player.pos)
                     self.map_window.redraw_level(self.memory, self.vision)
+                    self.examine_window.clear()
+
+    def examine_pos(self, pos):
+        memory = self.memory.get(pos, None)
+        self.examine_window.examine(memory)
 
     def move_examine(self, direction):
         self.map_window.move(direction)
@@ -206,6 +233,7 @@ class UI(object):
     def render(self):
         self.map_window.blit()
         self.messages_window.blit()
+        self.examine_window.blit()
         tcod.console_flush()
 
     def handle_move(self, event):
