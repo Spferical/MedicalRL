@@ -239,7 +239,7 @@ def get_random_passable_position(level):
 
 def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
     def outside(x, y):
-        return not 0 <= x1 < len(grid) or not 0 <= y1 < len(grid[0])
+        return not 0 <= x < len(grid) or not 0 <= y < len(grid[0])
     # manhattan distance
     for x1 in range(x - a, x + a + 1):
         for y1 in (y - a, y + a):
