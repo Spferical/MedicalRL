@@ -2,7 +2,8 @@
 	"player": {
 		"name": "player",
 		"char": "@",
-		"color": "white"
+		"color": "white",
+		"hp": 5
 	},
 
 	"factions": {
@@ -31,25 +32,25 @@
 			"name": "orc",
 			"char": "o",
 			"color": "white",
-			"hp": 10
+			"hp": 3
 		},
 		"orc_captain": {
 			"name": "orc captain",
 			"char": "o",
 			"color": "light_red",
-			"hp": 12
+			"hp": 4
 		},
 		"elf": {
 			"name": "elf",
 			"char": "e",
 			"color": "white",
-			"hp": 10
+			"hp": 3
 		},
 		"elf_captain": {
 			"name": "elf captain",
 			"char": "e",
 			"color": "light_red",
-			"hp": 12
+			"hp": 4
 		}
 	}
 }

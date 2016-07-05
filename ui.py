@@ -155,6 +155,11 @@ class ExamineWindow(Window):
             drawables[memory.mob.info['name']].draw(self.console, Pos(1, 1))
             tcod.console_print(self.console, 3, 1,
                                get_short_mob_description(memory.mob))
+            tcod.console_set_default_foreground(self.console, tcod.red)
+            tcod.console_print(self.console, 3, 2, str(memory.mob.hp))
+            tcod.console_set_default_foreground(self.console, tcod.white)
+            tcod.console_print(self.console, 4 + len(str(memory.mob.hp)), 2,
+                               "hp")
         else:
             drawables[memory.tile_name].draw(self.console, Pos(1, 1))
             tcod.console_print(self.console, 3, 1, memory.tile_name)

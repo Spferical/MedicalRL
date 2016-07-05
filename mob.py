@@ -22,6 +22,7 @@ class Mob(object):
         self.state = state
         self.target = None
         self.leader = leader
+        self.hp = self.info['hp']
         events.events.do_move_event(self, None)
 
     def move_to(self, pos):
