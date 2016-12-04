@@ -1,5 +1,7 @@
 import unittest
+from mob import Mob
 from util import Pos
+from world import mobinfo, Level, World
 
 
 class TestPos(unittest.TestCase):
@@ -40,3 +42,41 @@ class TestPos(unittest.TestCase):
     def test_distance(self):
         self.assertEqual(Pos(1, 2).distance(Pos(2, 2)), 1)
         self.assertEqual(Pos(0, 0).distance(Pos(-2, -2)), 4)
+
+    def test_as_tuple(self):
+        x, y = Pos(1, 2)
+        self.assertEquals(x, 1)
+        self.assertEquals(y, 2)
+        self.assertEquals(Pos(1, 2), (1, 2))
+
+
+class WorldTest(unittest.TestCase):
+    def test_out_of_bounds(self):
+        level = Level(100, 100)
+
+        self.assertNotIn((100, 100), level)
+        self.assertNotIn((-1, -1), level)
+        self.assertIn((50, 50), level)
+
+        self.assertEquals(level[(-1, -1)].name, 'stone wall')
+        self.assertTrue(level[(-1, -1)].blocked)
+        self.assertTrue(level[(-1, -1)].opaque)
+        self.assertFalse(level[(-1, -1)].explored)
+
+        self.assertEquals(level[(101, 101)].name, 'stone wall')
+        self.assertTrue(level[(101, 101)].blocked)
+        self.assertTrue(level[(101, 101)].opaque)
+        self.assertFalse(level[(101, 101)].explored)
+
+    def test_mobs(self):
+        level = Level(25, 25)
+        level.up_stairs_pos = Pos(1, 1)
+        world = World([level])
+
+        mob = level.mobs[2, 2] = Mob(Pos(2, 2), 0, mobinfo['orc'])
+        mob.move_to(Pos(3, 3))
+        self.assertNotIn((2, 2), level.mobs)
+        self.assertEquals(mob, level.mobs.get((3, 3)))
+
+        self.assertEquals(level.mobs.get(world.levels[0].up_stairs_pos),
+                          world.player)

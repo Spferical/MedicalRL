@@ -8,7 +8,8 @@ class MobState(Enum):
 
 
 class Mob(object):
-    def __init__(self, pos, info, state=MobState.WANDERING, leader=None):
+    def __init__(self, pos, dlevel, info,
+                 state=MobState.WANDERING, leader=None):
         """
         Creates a mob.
         pos: a tuple (x, y)
@@ -18,6 +19,7 @@ class Mob(object):
         leader: mob this mob is subordinate to
         """
         self.pos = pos
+        self.dlevel = dlevel
         self.info = info
         self.state = state
         self.target = None
@@ -32,7 +34,6 @@ class Mob(object):
 
 
 class Player(Mob):
-    dungeon_level = 0
     tiles_in_sight = set()
 
     def can_see(self, pos):

@@ -43,6 +43,10 @@ class Level(object):
         self.up_stairs_pos = self.down_stairs_pos = None
         self.mobs = {}
 
+    def move_mob(self, from_pos, to_pos):
+        if from_pos in self.mobs:
+            self.mobs[to_pos] = self.mobs.pop(from_pos)
+
     def get_mob(self, pos):
         return self.mobs.get(pos, None)
 
@@ -67,11 +71,31 @@ class Level(object):
 
 
 class World(object):
-    def __init__(self):
-        self.levels = [generate_level_cellular_automata()]
-        for i, level in enumerate(self.levels):
-            populate_level(i, level)
-        self.player = mob.Player(self.levels[0].up_stairs_pos, player_info)
+    """
+    Singleton to store all terrain and mobs.
+    """
+    def __init__(self, levels):
+        self.levels = levels
+        self.player = mob.Player(levels[0].up_stairs_pos, 0, player_info)
+        self.levels[0].mobs[levels[0].up_stairs_pos] = self.player
+        events.events.add_callback(
+            events.EventType.MOVE, self.handle_move_event, priority=2)
+
+    def handle_move_event(self, event):
+        prev_pos = event.info.prev_pos
+        mob = event.info.mob
+        self.levels[mob.dlevel].move_mob(prev_pos, mob.pos)
+
+    def __del__(self):
+        events.events.remove_callback(
+                events.EventType.MOVE, self.handle_move_event)
+
+
+def generate_world():
+    levels = [generate_level_cellular_automata()]
+    for i, level in enumerate(levels):
+        populate_level(i, level)
+    return World(levels)
 
 
 def populate_level(num, level):
@@ -84,14 +108,14 @@ def populate_level(num, level):
         # spawn leader at pos, spawn rest of mobs within fov
         leader_info = mobinfo[group[0]]
         leader_pos = get_random_passable_position(level)
-        leader = level.mobs[leader_pos] = mob.Mob(leader_pos, leader_info)
+        leader = level.mobs[leader_pos] = mob.Mob(leader_pos, num, leader_info)
         tiles_in_sight = list(filter(lambda pos: not level.is_blocked(pos),
                                      fov.calculate_fov(leader_pos, 5, level)))
         for mob_type in group[1:]:
             info = mobinfo[mob_type]
             pos = random.choice(tiles_in_sight)
             tiles_in_sight.remove(pos)
-            level.mobs[pos] = mob.Mob(pos, info, leader=leader)
+            level.mobs[pos] = mob.Mob(pos, num, info, leader=leader)
 
 
 def lock_number(x, min_x, max_x):

@@ -1,6 +1,7 @@
 import tcod
 from util import Pos
 
+DEBUG = True
 
 # window dimensions
 SCREEN_WIDTH = 80

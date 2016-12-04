@@ -1,6 +1,6 @@
 from enum import Enum
 import tcod
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG
 import events
 from mob import MobState
 from util import Pos
@@ -160,6 +160,9 @@ class ExamineWindow(Window):
             tcod.console_set_default_foreground(self.console, tcod.white)
             tcod.console_print(self.console, 4 + len(str(memory.mob.hp)), 2,
                                "hp")
+            if DEBUG:
+                tcod.console_print(self.console, 3, 3, str(memory.mob.pos))
+                tcod.console_print(self.console, 3, 4, str(memory.mob.target))
         else:
             drawables[memory.tile_name].draw(self.console, Pos(1, 1))
             tcod.console_print(self.console, 3, 1, memory.tile_name)

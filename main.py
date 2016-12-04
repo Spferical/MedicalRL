@@ -15,7 +15,7 @@ class Game(object):
 
     def __init__(self):
         self.ui = ui.UI()
-        self.world = world.World()
+        self.world = world.generate_world()
         events.events.add_callback(
             events.EventType.TILE_REVEALED, self.handle_tile_reveal)
         self.update_fov()
@@ -24,12 +24,12 @@ class Game(object):
 
     @property
     def player_level(self):
-        return self.world.levels[self.world.player.dungeon_level]
+        return self.world.levels[self.world.player.dlevel]
 
     def update_fov(self):
         player = self.world.player
         pos = self.world.player.pos
-        level = self.world.levels[player.dungeon_level]
+        level = self.world.levels[player.dlevel]
         new_fov = set(fov.calculate_fov(pos, FOV_RADIUS, level))
 
         for pos in player.tiles_in_sight.difference(new_fov):
@@ -46,7 +46,8 @@ class Game(object):
     def update_mobs(self):
         level = self.player_level
         for mob in level.mobs.values():
-            self.update_mob(mob, level)
+            if mob != self.world.player:
+                self.update_mob(mob, level)
 
     def update_mob(self, mob, level):
         if mob.state == MobState.WANDERING:
@@ -55,15 +56,15 @@ class Game(object):
                 if mob.leader and mob.leader.target:
                     mob.target = mob.leader.target
                 else:
-                    visible = list(fov.calculate_fov(mob.pos, 5, level))
-                    visible = list(pos for pos in visible
-                                   if not level[pos].blocked)
-                    mob.target = random.choice(visible)
+                    potential_targets = list(
+                        pos for pos in fov.calculate_fov(mob.pos, 5, level)
+                        if not level[pos].blocked)
+                    mob.target = random.choice(potential_targets)
             wander_path = path.get_path(
                 mob.pos, mob.target, level)
             if wander_path:
                 mob.move_to(wander_path[0])
-                if mob.pos.distance(mob.target) <= 2:
+                if mob.pos.distance(mob.target) <= 1:
                     mob.state = MobState.IDLE
         elif mob.state == MobState.IDLE:
             if mob.leader is None:
@@ -74,7 +75,7 @@ class Game(object):
                     mob.state = mob.leader.state
 
     def handle_tile_reveal(self, event):
-        level = self.world.levels[self.world.player.dungeon_level]
+        level = self.world.levels[self.world.player.dlevel]
         level[event.info.pos].explored = True
 
     def attempt_player_move(self, direction):
@@ -82,7 +83,7 @@ class Game(object):
         player = self.world.player
         old_pos = player.pos
         new_pos = player.pos + direction
-        if not self.world.levels[player.dungeon_level][new_pos].blocked:
+        if not self.world.levels[player.dlevel].is_blocked(new_pos):
             player.pos = new_pos
             events.events.do_move_event(player, old_pos)
             self.update_fov()

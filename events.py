@@ -25,15 +25,25 @@ class EventHandler(object):
     def __init__(self):
         self.callbacks = {event_type: [] for event_type in EventType}
 
-    def add_callback(self, event_type, callback):
-        self.callbacks[event_type].append(callback)
+    def add_callback(self, event_type, callback, priority=1):
+        self.callbacks[event_type].append((callback, priority))
+        self.callbacks[event_type].sort(
+                key=lambda x: x[1])
 
     def handle_event(self, event):
-        for callback in self.callbacks[event.event_type]:
+        for (callback, priority) in self.callbacks[event.event_type]:
             callback(event)
 
     def do_move_event(self, mob, prev_pos):
         info = MoveInfo(mob, prev_pos)
         self.handle_event(Event(EventType.MOVE, info))
+
+    def remove_callback(self, event_type, callback):
+        for i in range(len(self.callbacks[event_type])):
+            if self.callbacks[event_type][i][1] == callback:
+                self.callbacks[event_type].pop(i)
+                return True
+        return False
+
 
 events = EventHandler()

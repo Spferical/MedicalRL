@@ -3,7 +3,7 @@ from constants import DIRECTIONS
 
 
 def get_path(from_pos, to_pos, level):
-    if level[to_pos].blocked or from_pos == to_pos:
+    if level.is_blocked(to_pos) or from_pos == to_pos:
         return []
 
     def get_walkable_adjacent_tiles(source_pos):
