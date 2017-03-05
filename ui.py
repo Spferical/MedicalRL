@@ -4,11 +4,13 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG
 import events
 from mob import MobState
 from util import Pos
+from textwrap import wrap
 import world
 
 
 class Drawable(object):
     """Thing that can be drawn with libtcod."""
+
     def __init__(self, char, fg, bg=None):
         self.char = char
         self.fg = fg
@@ -23,6 +25,7 @@ class Drawable(object):
 
 
 class TileMemory(object):
+
     def __init__(self, tile_name, mob=None):
         self.tile_name = tile_name
         self.mob = mob
@@ -52,6 +55,7 @@ def get_article(word):
 
 
 class Window(object):
+
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
@@ -127,13 +131,15 @@ class MapWindow(Window):
 
 
 class MessagesWindow(Window):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.message_lines = []
 
     def message(self, message, color=tcod.white):
-        self.message_lines.append((message, color))
-        if len(self.message_lines) > self.height:
+        self.message_lines.extend((m, color)
+                                  for m in wrap(message, self.width))
+        while len(self.message_lines) > self.height:
             self.message_lines.pop(0)
         self.draw_messages()
 
@@ -146,7 +152,35 @@ class MessagesWindow(Window):
             y += 1
 
 
+class StatusBar(Window):
+
+    def __init(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def update(self, values, background_color=None):
+        if background_color is not None:
+            tcod.console_set_default_background(self.console, background_color)
+            tcod.console_rect(self.console, 0, 0, self.width,
+                              self.height, False, tcod.BKGND_SCREEN)
+        x = 0
+        list_of_statuses = [(k, v) for k, v in values.items()]
+        list_of_statuses.sort(key=lambda pair: pair[0])
+        for (name, value) in list_of_statuses:
+            status, name_color, status_color = value
+            tcod.console_set_default_foreground(self.console, name_color)
+            name_line = "{}: ".format(name)
+            tcod.console_print(self.console, x, 0, name_line)
+            x += len(name_line)
+            tcod.console_set_default_foreground(self.console, status_color)
+            tcod.console_print(self.console, x, 0, status)
+            x += len(status)
+            tcod.console_set_default_foreground(self.console, tcod.white)
+            tcod.console_print(self.console, x, 0, " | ")
+            x += 3
+
+
 class ExamineWindow(Window):
+
     def examine(self, memory):
         self.clear()
         if memory is None:
@@ -174,12 +208,18 @@ class UI(object):
 
     def __init__(self):
         self.map_window = MapWindow(
-            0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT)
+            0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
-            SCREEN_WIDTH // 2, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+            (3 * SCREEN_WIDTH) // 4, 0, SCREEN_WIDTH // 4, SCREEN_HEIGHT - 1)
         self.examine_window = ExamineWindow(
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 1)
+        self.status_bar = StatusBar(
+            0, SCREEN_HEIGHT - 1, SCREEN_WIDTH, 1)
+        self.status_bar.update(
+            {"a": ("bingo", tcod.red, tcod.blue), "b": (
+                "cat", tcod.green, tcod.yellow)},
+            background_color=tcod.dark_grey)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
         events.events.add_callback(events.EventType.TILE_REVEALED,
@@ -241,6 +281,7 @@ class UI(object):
     def render(self):
         self.map_window.blit()
         self.messages_window.blit()
+        self.status_bar.blit()
         self.examine_window.blit()
         tcod.console_flush()
 
