@@ -92,9 +92,7 @@ class World(object):
 
 
 def generate_world():
-    levels = [generate_level_cellular_automata()]
-    for i, level in enumerate(levels):
-        populate_level(i, level)
+    levels = [generate_hospital()]
     return World(levels)
 
 
@@ -133,11 +131,11 @@ def dig_rect(level, x1, y1, x2, y2):
 
 
 def rotated90(vec):
-    return (vec[1], -vec[0])
+    return Pos(vec[1], -vec[0])
 
 
 def rotated270(vec):
-    return (-vec[1], vec[0])
+    return Pos(-vec[1], vec[0])
 
 
 def add(vec1, vec2):
@@ -281,67 +279,31 @@ def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
                 yield (x1, y1)
 
 
-def generate_level_cellular_automata():
+def generate_hospital():
     width = constants.MAP_WIDTH
     height = constants.MAP_HEIGHT
     level = Level(width, height)
-    # random initial distribution
-    walls = [[random.randint(1, 100) < 45
-              for y in range(level.height)]
-             for x in range(level.width)]
 
-    # now, apply CA
-    for i in range(1):
-        walls = [[len(list(filled_a_tiles_away(walls, x, y, 1, True))) >= 5 or
-                  len(list(filled_a_tiles_away(walls, x, y, 3, True))) == 0
-                  for y in range(level.height)]
-                 for x in range(level.width)]
-        for x in range(level.width):
-            for y in range(level.height):
-                if walls[x][y]:
-                    undig(level, x, y)
-                else:
-                    dig(level, x, y)
-
-    # lakes and rivers
-    # separate cellular automata
-    water = [[random.randint(1, 100) < 45
-              for y in range(level.height)]
-             for x in range(level.width)]
-    for i in range(5):
-        water = [[len(list(filled_a_tiles_away(water, x, y, 1))) >= 5
-                  for y in range(level.height)]
-                 for x in range(level.width)]
-    for x in range(level.width):
-        for y in range(level.height):
-            if water[x][y]:
-                level[x, y] = Tile('water', blocked=True)
-
-    # grass
-    grass = [[random.randint(1, 100) < 50
-              for y in range(level.height)]
-             for x in range(level.width)]
-    for i in range(5):
-        grass = [[len(list(filled_a_tiles_away(grass, x, y, 1))) >= 5
-                  for y in range(level.height)]
-                 for x in range(level.width)]
-    for x in range(level.width):
-        for y in range(level.height):
-            if grass[x][y] and not level[x, y].blocked:
-                level[x, y] = Tile('grass', blocked=False)
-
-    # detect and delete floors outside of main cavern to prevent inaccessable
-    # areas
-    x, y = get_random_passable_position(level)
-    tiles = flood_fill(level, x, y)
-
-    if len(tiles) < .20 * level.width * level.height:
-        # the cave generated was too small!
-        # try again
-        print("Cave too small. Retrying mapgen...")
-        return generate_level_cellular_automata()
+    # dig main corridor
+    pos = Pos(width // 3, height // 3)
+    direction = Pos(1, 0)
+    for i in range(6):
+        direction = random.choice((
+            rotated90(direction), rotated270(direction)))
+        right = rotated90(direction)
+        left = rotated270(direction)
+        for num in range(random.randint(10, 15)):
+            pos += direction
+            pos2 = pos + right
+            dig(level, pos.x, pos.y)
+            dig(level, pos2.x, pos2.y)
+            entrance = pos + left
+            if try_to_dig_room(level, pos + left, left, 3, 3):
+                dig(level, entrance.x, entrance.y)
+        pos -= direction
 
     # up stairs
+    x, y = get_random_passable_position(level)
     level[x, y] = Tile('up stairs')
     level.up_stairs_pos = Pos(x, y)
 
@@ -350,8 +312,4 @@ def generate_level_cellular_automata():
     level[x, y] = Tile('down stairs')
     level.down_stairs_pos = Pos(x, y)
 
-    for x in range(0, level.width):
-        for y in range(0, level.height):
-            if (x, y) not in tiles and not level[x, y].blocked:
-                undig(level, x, y)
     return level
