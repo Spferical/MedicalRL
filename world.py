@@ -285,10 +285,10 @@ def generate_hospital():
     level = Level(width, height)
 
     # dig main corridor
-    pos = Pos(width // 3, height // 3)
+    pos = Pos(width // 2, height // 2)
     direction = Pos(1, 0)
     walls = []
-    for i in range(6):
+    for i in range(12):
         direction = random.choice((
             rotated90(direction), rotated270(direction)))
         right = rotated90(direction)
