@@ -11,6 +11,7 @@ from util import Pos
 with open("data.json") as data:
     data = json.load(data)
     mobinfo = data['mobs']
+    objinfo = data['objects']
     player_info = data['player']
     factions = data['factions']
 
@@ -19,6 +20,7 @@ class Tile(object):
     """
     A tile of the map and its properties
     """
+
     def __init__(self, name, blocked=False, opaque=False, explored=False,
                  room_id=0):
         self.name = name
@@ -29,13 +31,24 @@ class Tile(object):
 
 
 class TileInfo(object):
+
     def __init__(self, pos, tile, mob=None):
         self.pos = pos
         self.tile = tile
         self.mob = mob
 
 
+class Object(object):
+
+    def __init__(self, pos):
+        self.pos = pos
+        self.is_passable = True
+        events.send(events.Event(events.EventType.BIRTH,
+                                 self))
+
+
 class Level(object):
+
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -45,6 +58,7 @@ class Level(object):
         self.up_stairs_pos = self.down_stairs_pos = None
         self.mobs = {}
         self.rooms = ['']
+        self.objects = {}
 
     def move_mob(self, from_pos, to_pos):
         if from_pos in self.mobs:
@@ -57,8 +71,16 @@ class Level(object):
     def get_mob(self, pos):
         return self.mobs.get(pos, None)
 
+    def move_object(self, from_pos, to_pos):
+        if from_pos in self.objects:
+            self.mobs[to_pos] = self.mobs.pop(from_pos)
+
+    def get_object(self, pos):
+        return self.objects.get(pos, None)
+
     def is_blocked(self, pos):
-        return self[pos].blocked or pos in self.mobs
+        return self[pos].blocked or pos in self.mobs or \
+            (pos in self.objects and not self.objects[pos].is_passable)
 
     def __getitem__(self, key):
         x, y = key
@@ -81,6 +103,7 @@ class World(object):
     """
     Singleton to store all terrain and mobs.
     """
+
     def __init__(self, levels):
         self.levels = levels
         self.player = mob.Player(levels[0].up_stairs_pos, 0, player_info)
@@ -95,7 +118,7 @@ class World(object):
 
     def __del__(self):
         events.events.remove_callback(
-                events.EventType.MOVE, self.handle_move_event)
+            events.EventType.MOVE, self.handle_move_event)
 
 
 def generate_world():
@@ -185,7 +208,7 @@ def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
     perp2 = rotated270(direction)
     corner1 = add(add(entrance, direction), mul(perp1, dim2 // 2))
     corner2 = add(add(entrance, mul(direction, dim1)), mul(perp2,
-                  math.ceil(dim2 / 2)))
+                                                           math.ceil(dim2 / 2)))
     x1 = min(corner1[0], corner2[0])
     y1 = min(corner1[1], corner2[1])
     x2 = max(corner1[0], corner2[0])
@@ -217,8 +240,8 @@ def walls_a_tiles_away(level, x, y, a):
 def reachable_tiles(level, x, y):
     moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     return [(x1, y1) for (x1, y1) in (
-                (x + m[0], y + m[1]) for m in moves)
-            if not level[x1, y1].blocked]
+        (x + m[0], y + m[1]) for m in moves)
+        if not level[x1, y1].blocked]
 
 
 def flood_fill(level, x, y):

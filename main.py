@@ -83,7 +83,8 @@ class Game(object):
         player = self.world.player
         old_pos = player.pos
         new_pos = player.pos + direction
-        if not self.player_level.is_blocked(new_pos):
+        if not self.player_level.is_blocked(new_pos) \
+           and player.can_move(new_pos):
 
             old_room_id = self.player_level[old_pos].room_id
             new_room_id = self.player_level[new_pos].room_id
@@ -92,7 +93,6 @@ class Game(object):
                 self.ui.messages_window.message(
                         "You enter a " + self.player_level.rooms[new_room_id] +
                         '.')
-
             player.pos = new_pos
             events.events.do_move_event(player, old_pos)
             self.update_fov()

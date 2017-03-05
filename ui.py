@@ -222,6 +222,8 @@ class UI(object):
             background_color=tcod.dark_grey)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
+        events.events.add_callback(events.EventType.BIRTH,
+                                   self.handle_birth)
         events.events.add_callback(events.EventType.TILE_REVEALED,
                                    self.handle_revealed)
         events.events.add_callback(events.EventType.TILE_HIDDEN,
@@ -286,6 +288,9 @@ class UI(object):
         self.status_bar.blit()
         self.examine_window.blit()
         tcod.console_flush()
+
+    def handle_birth(self, event):
+        handle_move(None)
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
@@ -383,7 +388,9 @@ def menu(header, options, width, highlighted=[]):
 
 
 def create_drawable_from_json(info):
-    return Drawable(info["char"], getattr(tcod, info["color"]))
+    return Drawable(info["char"],
+                    getattr(tcod, info["fg_color"]),
+                    getattr(tcod, info["bg_color"]))
 
 
 def draw_cell(con, pos, char, fg, bg=None):
@@ -407,4 +414,6 @@ drawables = {
 
 drawables["player"] = create_drawable_from_json(world.data["player"])
 for info in world.data["mobs"].values():
+    drawables[info['name']] = create_drawable_from_json(info)
+for info in world.data["objects"].values():
     drawables[info['name']] = create_drawable_from_json(info)

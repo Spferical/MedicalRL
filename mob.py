@@ -42,5 +42,8 @@ class Player(Mob):
         super().__init__(pos, dlevel, info)
         self.body = Body(info)
 
+    def can_move(self, pos):
+        return True
+
     def can_see(self, pos):
         return pos in self.tiles_in_sight

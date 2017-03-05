@@ -1,56 +1,19 @@
 {
-	"player": {
-		"name": "player",
-		"char": "@",
-		"color": "white",
-		"hp": 5
-	},
-
-	"factions": {
-		"orc": {
-			"groups": [
-				[
-					"orc_captain",
-					"orc",
-					"orc"
-				]
-			]
-		},
-		"elf": {
-			"groups": [
-				[
-					"elf_captain",
-					"elf",
-					"elf"
-				]
-			]
-		}
-	},
-
-	"mobs": {
-		"orc": {
-			"name": "orc",
-			"char": "o",
-			"color": "white",
-			"hp": 3
-		},
-		"orc_captain": {
-			"name": "orc captain",
-			"char": "o",
-			"color": "light_red",
-			"hp": 4
-		},
-		"elf": {
-			"name": "elf",
-			"char": "e",
-			"color": "white",
-			"hp": 3
-		},
-		"elf_captain": {
-			"name": "elf captain",
-			"char": "e",
-			"color": "light_red",
-			"hp": 4
-		}
-	}
+    "player": {
+        "name": "player",
+        "char": "@",
+        "fg_color": "white",
+        "bg_color": "black",
+        "hp": 5
+    },
+    "factions": {},
+    "mobs": {},
+    "objects": {
+        "bed": {
+            "name": "bed",
+            "char": "=",
+            "fg_color": "white",
+            "bg_color": "blue"
+        }
+    }
 }
