@@ -21,11 +21,13 @@ class Tile(object):
     A tile of the map and its properties
     """
 
-    def __init__(self, name, blocked=False, opaque=False, explored=False):
+    def __init__(self, name, blocked=False, opaque=False, explored=False,
+                 room_id=0):
         self.name = name
         self.blocked = blocked
         self.opaque = opaque
         self.explored = explored
+        self.room_id = room_id
 
 
 class TileInfo(object):
@@ -55,11 +57,16 @@ class Level(object):
                       for x in range(width)]
         self.up_stairs_pos = self.down_stairs_pos = None
         self.mobs = {}
+        self.rooms = ['']
         self.objects = {}
 
     def move_mob(self, from_pos, to_pos):
         if from_pos in self.mobs:
             self.mobs[to_pos] = self.mobs.pop(from_pos)
+
+    def add_room(self, room_name):
+        self.rooms.append(room_name)
+        return len(self.rooms) - 1
 
     def get_mob(self, pos):
         return self.mobs.get(pos, None)
@@ -143,14 +150,14 @@ def lock_number(x, min_x, max_x):
     return min(max(x, min_x), max_x)
 
 
-def dig_rect(level, x1, y1, x2, y2):
+def dig_rect(level, x1, y1, x2, y2, room_id=0):
     x1 = lock_number(x1, 0, level.width - 1)
     x2 = lock_number(x2, 0, level.width - 1)
     y1 = lock_number(y1, 0, level.height - 1)
     y2 = lock_number(y2, 0, level.height - 1)
     for x in range(x1, x2 + 1):
         for y in range(y1, y2 + 1):
-            dig(level, x, y)
+            dig(level, x, y, room_id=room_id)
 
 
 def rotated90(vec):
@@ -184,8 +191,8 @@ def reveal_tile(level, pos):
             TileInfo(pos, level[pos], level.get_mob(pos))))
 
 
-def dig(level, x, y):
-    level[x, y] = Tile('stone floor')
+def dig(level, x, y, room_id=0):
+    level[x, y] = Tile('stone floor', room_id=room_id)
 
 
 def undig(level, x, y):
@@ -208,35 +215,14 @@ def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
     y2 = max(corner1[1], corner2[1])
     if (x1, y1) in level and (x2, y2) in level and \
             not floors_in_or_by_rect(level, x1, y1, x2, y2):
-        dig_rect(level, x1, y1, x2, y2)
+        room_id = level.add_room('hospital room')
+        dig_rect(level, x1, y1, x2, y2, room_id=room_id)
         return True
     return False
 
 
 def try_to_dig_hallway(level, entrance, direction):
     return try_to_dig_room(level, entrance, direction, dim1=1)
-
-
-def generate_level():
-    width = constants.MAP_WIDTH
-    height = constants.MAP_HEIGHT
-    level = Level(width, height)
-    # randomly place a room
-    x = random.randint(2, width - 3)
-    y = random.randint(2, height - 3)
-    room_width = random.randint(2, 5)
-    room_height = random.randint(2, 5)
-    dig_rect(level, x - room_width // 2, y - room_height // 2,
-             x + room_width // 2, y + room_height // 2)
-    for i in range(3000):
-        pos = (random.randint(0, width), random.randint(0, height))
-        for direction in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-            if level[add(pos, direction)].name == 'stone floor':
-                direction = mul(direction, -1)
-                if random.random() < 0.5 and \
-                        try_to_dig_room(level, pos, direction) or \
-                        try_to_dig_hallway(level, pos, direction):
-                    dig(level, pos[0], pos[1])
 
 
 def walls_a_tiles_away(level, x, y, a):
