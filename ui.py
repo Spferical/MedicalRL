@@ -26,9 +26,10 @@ class Drawable(object):
 
 class TileMemory(object):
 
-    def __init__(self, tile_name, mob=None):
+    def __init__(self, tile_name, mob=None, item=None):
         self.tile_name = tile_name
         self.mob = mob
+        self.item = item
 
 
 class States(Enum):
@@ -122,10 +123,14 @@ class MapWindow(Window):
             tile_drawable = drawables[memory.tile_name]
             mob_drawable = drawables[memory.mob.info['name']] if memory.mob \
                 else None
+            object_drawable = drawables[memory.item.name] if memory.item \
+                else None
 
             visible = map_pos in vision
 
             tile_drawable.draw(self.console, window_pos, not visible)
+            if object_drawable:
+                object_drawable.draw(self.console, window_pos, not visible)
             if mob_drawable:
                 mob_drawable.draw(self.console, window_pos, not visible)
 
@@ -290,7 +295,11 @@ class UI(object):
         tcod.console_flush()
 
     def handle_birth(self, event):
-        handle_move(events.MoveInfo(event.info, event.info.pos))
+        # add mob to new memory position if we saw him enter
+        memory = self.memory.get(event.info.pos, None)
+        if memory and event.info.pos in self.vision:
+            memory.item = event.info
+            self.draw_tile(event.info.pos)
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
@@ -317,7 +326,7 @@ class UI(object):
     def handle_revealed(self, event):
         info = event.info
         self.vision.add(info.pos)
-        self.memory[info.pos] = TileMemory(info.tile.name, info.mob)
+        self.memory[info.pos] = TileMemory(info.tile.name, info.mob, info.item)
         self.map_window.draw_tile(info.pos, self.memory, self.vision)
         if info.mob:
             self.messages_window.message(

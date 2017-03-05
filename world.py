@@ -32,19 +32,21 @@ class Tile(object):
 
 class TileInfo(object):
 
-    def __init__(self, pos, tile, mob=None):
+    def __init__(self, pos, tile, mob=None, item=None):
         self.pos = pos
         self.tile = tile
         self.mob = mob
+        self.item = item
 
 
 class Object(object):
 
-    def __init__(self, pos):
+    def __init__(self, pos, name):
         self.pos = pos
-        self.is_passable = True
-        events.send(events.Event(events.EventType.BIRTH,
-                                 self))
+        self.name = name
+        self.is_passable = False
+        events.events.send(events.Event(events.EventType.BIRTH,
+                                        self))
 
 
 class Level(object):
@@ -188,11 +190,16 @@ def reveal_tile(level, pos):
     events.events.handle_event(
         events.Event(
             events.EventType.TILE_REVEALED,
-            TileInfo(pos, level[pos], level.get_mob(pos))))
+            TileInfo(pos,
+                     level[pos],
+                     level.get_mob(pos),
+                     level.get_object(pos))))
 
 
 def dig(level, x, y, room_id=0):
     level[x, y] = Tile('stone floor', room_id=room_id)
+    if random.random() < 0.03:
+        level.objects[(x, y)] = Object((x, y), "bed")
 
 
 def undig(level, x, y):
