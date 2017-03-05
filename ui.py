@@ -226,6 +226,8 @@ class UI(object):
                                    self.handle_revealed)
         events.events.add_callback(events.EventType.TILE_HIDDEN,
                                    self.handle_hidden)
+        events.events.add_callback(events.EventType.MESSAGE,
+                                   self.handle_message)
         self.memory = {}
         self.vision = set()
 
@@ -319,6 +321,9 @@ class UI(object):
     def handle_hidden(self, event):
         self.vision.remove(event.info.pos)
         self.draw_tile(event.info.pos)
+
+    def handle_message(self, message):
+        self.messages_window.message(message)
 
 
 def menu(header, options, width, highlighted=[]):
