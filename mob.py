@@ -1,5 +1,6 @@
 from enum import Enum
 import events
+from vitals import Body
 
 
 class MobState(Enum):
@@ -8,6 +9,7 @@ class MobState(Enum):
 
 
 class Mob(object):
+
     def __init__(self, pos, dlevel, info,
                  state=MobState.WANDERING, leader=None):
         """
@@ -35,6 +37,10 @@ class Mob(object):
 
 class Player(Mob):
     tiles_in_sight = set()
+
+    def __init__(self, pos, dlevel, info):
+        super().__init__(pos, dlevel, info)
+        self.body = Body(info)
 
     def can_see(self, pos):
         return pos in self.tiles_in_sight
