@@ -280,6 +280,62 @@ class UI(object):
         self.draw_tile(event.info.pos)
 
 
+def menu(header, options, width, highlighted=[]):
+    """Basic, general-purpose menu.
+    Allows the user to choose from up to 26 text options."""
+    if len(options) > 26:
+        raise ValueError('Cannot have a menu with more than 26 options.')
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+    # calculate total height for the header (after auto-wrap) and one line per
+    # option
+    if header == '':
+        header_height = 0
+    else:
+        header_height = tcod.console_get_height_rect(0, 0, 0, width,
+                                                     SCREEN_HEIGHT, header)
+    height = len(options) + header_height
+    # create an off-screen console that represents the menu's window
+    window = tcod.console_new(width, height)
+
+    # print the header, with auto-wrap
+    tcod.console_set_default_foreground(window, tcod.white)
+    tcod.console_print_rect(window, 0, 0, width, height, header)
+    # print all the options
+    y = header_height
+    letter_index = ord('a')
+    for option_text in options:
+        text = '(' + chr(letter_index) + ') ' + option_text
+        tcod.console_print(window, 0, y, text)
+        y += 1
+        letter_index += 1
+    for index in highlighted:
+        w = len(options[index]) + 4
+        tcod.console_set_default_background(window, tcod.grey)
+        y = index + header_height
+        tcod.console_rect(window, 0, y, w, 1, False, flag=tcod.BKGND_SET)
+    # blit the contents of "window" to the root console
+    x = SCREEN_WIDTH // 2 - width // 2
+    y = SCREEN_HEIGHT // 2 - height // 2
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+    # present the root console to the player and wait for a key-press
+    tcod.console_flush()
+    tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
+
+    # special case: changing to/from fullscreen
+    if key.vk == tcod.KEY_F11:
+        tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+    elif key.vk == tcod.KEY_ESCAPE:
+        return 'escape'
+    else:
+        # convert the ASCII code to an index; if it corresponds to an option,
+        # return it
+        index = key.c - ord('a')
+        if index >= 0 and index < len(options):
+            return index
+        return None
+
+
 def create_drawable_from_json(info):
     return Drawable(info["char"], getattr(tcod, info["color"]))
 
