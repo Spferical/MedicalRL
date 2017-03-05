@@ -290,7 +290,7 @@ class UI(object):
         tcod.console_flush()
 
     def handle_birth(self, event):
-        handle_move(events.MoveInfo(None, event.info.pos))
+        handle_move(events.MoveInfo(event.info, event.info.pos))
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
