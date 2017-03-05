@@ -214,8 +214,9 @@ def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
     perp1 = rotated90(direction)
     perp2 = rotated270(direction)
     corner1 = add(add(entrance, direction), mul(perp1, dim2 // 2))
-    corner2 = add(add(entrance, mul(direction, dim1)), mul(perp2,
-                                                           math.ceil(dim2 / 2)))
+    corner2 = add(
+            add(entrance, mul(direction, dim1)),
+            mul(perp2, math.ceil(dim2 / 2)))
     x1 = min(corner1[0], corner2[0])
     y1 = min(corner1[1], corner2[1])
     x2 = max(corner1[0], corner2[0])
