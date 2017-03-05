@@ -287,6 +287,7 @@ def generate_hospital():
     # dig main corridor
     pos = Pos(width // 3, height // 3)
     direction = Pos(1, 0)
+    walls = []
     for i in range(6):
         direction = random.choice((
             rotated90(direction), rotated270(direction)))
@@ -297,19 +298,17 @@ def generate_hospital():
             pos2 = pos + right
             dig(level, pos.x, pos.y)
             dig(level, pos2.x, pos2.y)
-            entrance = pos + left
-            if try_to_dig_room(level, pos + left, left, 3, 3):
-                dig(level, entrance.x, entrance.y)
+            walls.append((pos + left, left))
+            walls.append((pos + right * 2, right))
         pos -= direction
+
+    while walls:
+        wall, direction = walls.pop()
+        if try_to_dig_room(level, wall, direction, 3, 3):
+            dig(level, wall.x, wall.y)
 
     # up stairs
     x, y = get_random_passable_position(level)
-    level[x, y] = Tile('up stairs')
     level.up_stairs_pos = Pos(x, y)
-
-    # down stairs
-    x, y = get_random_passable_position(level)
-    level[x, y] = Tile('down stairs')
-    level.down_stairs_pos = Pos(x, y)
 
     return level
