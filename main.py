@@ -83,7 +83,8 @@ class Game(object):
         player = self.world.player
         old_pos = player.pos
         new_pos = player.pos + direction
-        if not self.world.levels[player.dlevel].is_blocked(new_pos):
+        if not self.world.levels[player.dlevel].is_blocked(new_pos) \
+           and player.can_move(new_pos):
             player.pos = new_pos
             events.events.do_move_event(player, old_pos)
             self.update_fov()
