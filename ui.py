@@ -208,10 +208,12 @@ class ExamineWindow(Window):
 
 
 class UI(object):
-    """Handles rendering and input."""
+    """Singleton that handles rendering and input."""
     state = States.DEFAULT
 
     def __init__(self):
+        tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, b"Frogue", False)
+        tcod.sys_set_fps(30)
         self.map_window = MapWindow(
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
