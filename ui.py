@@ -416,6 +416,7 @@ def handle_main_menu():
     """ Returns a MainMenuChoice for the player's choice.
     """
     img = tcod.image_load(b'menu_background.png')
+    tcod.console_clear(0)
 
     while not tcod.console_is_window_closed():
         # show the background image, at twice the regular console resolution
