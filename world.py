@@ -41,12 +41,20 @@ class TileInfo(object):
 
 class Object(object):
 
-    def __init__(self, pos, name):
+    def __init__(self, pos, info):
+        """
+        pos: a tuple (x, y)
+        info: a dict with type-specific info like name, char, whether this kind
+        of object is passable or not, etc.
+        """
         self.pos = Pos(pos)
-        self.name = name
-        self.is_passable = False
+        self.info = info
+        self.name = self.info['name']
         events.events.send(events.Event(events.EventType.BIRTH,
                                         self))
+
+    def is_passable(self):
+        return self.info.get('passable', False)
 
 
 class Level(object):
@@ -82,7 +90,7 @@ class Level(object):
 
     def is_blocked(self, pos):
         return self[pos].blocked or pos in self.mobs or \
-            (pos in self.objects and not self.objects[pos].is_passable)
+            (pos in self.objects and not self.objects[pos].is_passable())
 
     def __getitem__(self, key):
         x, y = key
@@ -152,11 +160,11 @@ def lock_number(x, min_x, max_x):
     return min(max(x, min_x), max_x)
 
 
-def dig_rect(level, x1, y1, x2, y2, room_id=0):
-    x1 = lock_number(x1, 0, level.width - 1)
-    x2 = lock_number(x2, 0, level.width - 1)
-    y1 = lock_number(y1, 0, level.height - 1)
-    y2 = lock_number(y2, 0, level.height - 1)
+def dig_rect(level, rect, room_id=0):
+    x1 = lock_number(rect.left, 0, level.width - 1)
+    x2 = lock_number(rect.right, 0, level.width - 1)
+    y1 = lock_number(rect.top, 0, level.height - 1)
+    y2 = lock_number(rect.bottom, 0, level.height - 1)
     for x in range(x1, x2 + 1):
         for y in range(y1, y2 + 1):
             dig(level, x, y, room_id=room_id)
@@ -178,9 +186,9 @@ def mul(vec, scalar):
     return tuple(i * scalar for i in vec)
 
 
-def floors_in_or_by_rect(level, x1, y1, x2, y2):
-    for x in range(x1 - 1, x2 + 2):
-        for y in range(y1 - 1, y2 + 2):
+def floors_in_or_by_rect(level, rect):
+    for x in range(rect.left - 1, rect.right + 2):
+        for y in range(rect.top - 1, rect.bottom + 2):
             if level[x, y].name != 'stone wall':
                 return True
     return False
@@ -198,15 +206,27 @@ def reveal_tile(level, pos):
 
 def dig(level, x, y, room_id=0):
     level[x, y] = Tile('stone floor', room_id=room_id)
-    if random.random() < 0.03:
-        level.objects[(x, y)] = Object((x, y), "bed")
 
 
 def undig(level, x, y):
     level[x, y] = Tile('stone wall', blocked=True, opaque=True)
 
 
-def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
+class Rect(object):
+    def __init__(self, left, top, right, bottom):
+        self.left = left
+        self.top = top
+        self.right = right
+        self.bottom = bottom
+
+
+def rect_in_level(level, rect):
+    return (rect.left, rect.top) in level \
+            and (rect.right, rect.bottom) in level
+
+
+def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None,
+                    name=None):
     if dim1 is None:
         dim1 = random.randint(2, 5)
     if dim2 is None:
@@ -221,12 +241,13 @@ def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None):
     y1 = min(corner1[1], corner2[1])
     x2 = max(corner1[0], corner2[0])
     y2 = max(corner1[1], corner2[1])
-    if (x1, y1) in level and (x2, y2) in level and \
-            not floors_in_or_by_rect(level, x1, y1, x2, y2):
-        room_id = level.add_room('hospital room')
-        dig_rect(level, x1, y1, x2, y2, room_id=room_id)
-        return True
-    return False
+    rect = Rect(x1, y1, x2, y2)
+    if rect_in_level(level, rect) and \
+            not floors_in_or_by_rect(level, rect):
+        room_id = level.add_room(name) if name is not None else 0
+        dig_rect(level, rect, room_id=room_id)
+        return rect
+    return None
 
 
 def try_to_dig_hallway(level, entrance, direction):
@@ -296,12 +317,27 @@ def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
                 yield (x1, y1)
 
 
+def try_to_dig_hospital_room(level, entrance, direction):
+    rect = try_to_dig_room(level, entrance, direction, 3, 3,
+                           name='hospital room')
+    if rect:
+        # room was successfully dug
+        # add the door
+        dig(level, entrance.x, entrance.y)
+
+        # populate the room with items
+        # stick a bed across from the entrance
+        corners = (Pos(rect.left, rect.top), Pos(rect.right, rect.bottom))
+        bed_corner = max(corners, key=lambda pos: entrance.distance(pos))
+        level.objects[bed_corner] = Object(bed_corner, objinfo['bed'])
+
+
 def generate_hospital():
     width = constants.MAP_WIDTH
     height = constants.MAP_HEIGHT
     level = Level(width, height)
 
-    # dig main corridor
+    # dig a long corridor
     pos = Pos(width // 2, height // 2)
     direction = Pos(1, 0)
     walls = []
@@ -319,10 +355,10 @@ def generate_hospital():
             walls.append((pos + right * 2, right))
         pos -= direction
 
+    # go through walls next to corridor and try to dig rooms from them
     while walls:
         wall, direction = walls.pop()
-        if try_to_dig_room(level, wall, direction, 3, 3):
-            dig(level, wall.x, wall.y)
+        try_to_dig_hospital_room(level, wall, direction)
 
     # up stairs
     x, y = get_random_passable_position(level)

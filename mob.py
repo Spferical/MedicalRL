@@ -14,7 +14,6 @@ class Mob(object):
     def __init__(self, pos, dlevel, info,
                  state=MobState.WANDERING, leader=None):
         """
-        Creates a mob.
         pos: a tuple (x, y)
         info: a dict with monster-specific info like name, char, color, etc.
         state: MobState that indicates what the mob's current intention is

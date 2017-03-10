@@ -13,7 +13,8 @@
             "name": "bed",
             "char": "=",
             "fg_color": "white",
-            "bg_color": "blue"
+            "bg_color": "blue",
+            "passable": false
         }
     }
 }
