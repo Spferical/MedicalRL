@@ -466,5 +466,5 @@ drawables = {
 drawables["player"] = create_drawable_from_json(world.data["player"])
 for info in world.data["mobs"].values():
     drawables[info['name']] = create_drawable_from_json(info)
-for info in world.data["objects"].values():
-    drawables[info['name']] = create_drawable_from_json(info)
+for name, info in world.data["objects"].items():
+    drawables[name] = create_drawable_from_json(info)

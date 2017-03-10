@@ -41,20 +41,16 @@ class TileInfo(object):
 
 class Object(object):
 
-    def __init__(self, pos, info):
+    def __init__(self, pos, name, passable=True):
         """
         pos: a tuple (x, y)
-        info: a dict with type-specific info like name, char, whether this kind
-        of object is passable or not, etc.
+        passable: whether the player can move into the same square as this item
         """
         self.pos = Pos(pos)
-        self.info = info
-        self.name = self.info['name']
+        self.name = name
+        self.is_passable = passable
         events.events.send(events.Event(events.EventType.BIRTH,
                                         self))
-
-    def is_passable(self):
-        return self.info.get('passable', False)
 
 
 class Level(object):
@@ -90,7 +86,7 @@ class Level(object):
 
     def is_blocked(self, pos):
         return self[pos].blocked or pos in self.mobs or \
-            (pos in self.objects and not self.objects[pos].is_passable())
+            (pos in self.objects and not self.objects[pos].is_passable)
 
     def __getitem__(self, key):
         x, y = key
@@ -329,7 +325,7 @@ def try_to_dig_hospital_room(level, entrance, direction):
         # stick a bed across from the entrance
         corners = (Pos(rect.left, rect.top), Pos(rect.right, rect.bottom))
         bed_corner = max(corners, key=lambda pos: entrance.distance(pos))
-        level.objects[bed_corner] = Object(bed_corner, objinfo['bed'])
+        level.objects[bed_corner] = Object(bed_corner, 'bed', passable=False)
 
 
 def generate_hospital():
