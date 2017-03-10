@@ -263,6 +263,10 @@ class UI(object):
                     self.examine_pos(game.world.player.pos)
                 elif char == '.':
                     return True
+                elif key.vk == tcod.KEY_ESCAPE:
+                    result = menu("Escape menu", ['Resume', 'Quit'], 24)
+                    if result == 1:
+                        game.alive = False
             elif self.state == States.EXAMINE:
                 if char in DIRECTION_KEYS:
                     self.map_window.move(DIRECTION_KEYS[char])
