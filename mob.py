@@ -1,6 +1,7 @@
 from enum import Enum
 import events
 from vitals import Body
+from util import Pos
 
 
 class MobState(Enum):
@@ -20,7 +21,7 @@ class Mob(object):
         target: pos the mob is trying to get to, if any
         leader: mob this mob is subordinate to
         """
-        self.pos = pos
+        self.pos = Pos(pos)
         self.dlevel = dlevel
         self.info = info
         self.state = state
@@ -31,7 +32,7 @@ class Mob(object):
 
     def move_to(self, pos):
         old_pos = self.pos
-        self.pos = pos
+        self.pos = Pos(pos)
         events.events.do_move_event(self, old_pos)
 
 

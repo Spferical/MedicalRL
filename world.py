@@ -33,7 +33,7 @@ class Tile(object):
 class TileInfo(object):
 
     def __init__(self, pos, tile, mob=None, item=None):
-        self.pos = pos
+        self.pos = Pos(pos)
         self.tile = tile
         self.mob = mob
         self.item = item
@@ -42,7 +42,7 @@ class TileInfo(object):
 class Object(object):
 
     def __init__(self, pos, name):
-        self.pos = pos
+        self.pos = Pos(pos)
         self.name = name
         self.is_passable = False
         events.events.send(events.Event(events.EventType.BIRTH,
