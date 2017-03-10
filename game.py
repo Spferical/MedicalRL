@@ -10,6 +10,7 @@ import world
 
 
 class Game(object):
+    """Manages a single play of the game."""
     alive = True
 
     def __init__(self):

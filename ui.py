@@ -1,11 +1,17 @@
 from enum import Enum
 import tcod
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG, \
+    GAME_NAME
 import events
 from mob import MobState
 from util import Pos
 from textwrap import wrap
 import world
+
+
+def init_tcod():
+    tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, b"Frogue", False)
+    tcod.sys_set_fps(30)
 
 
 class Drawable(object):
@@ -62,6 +68,7 @@ class Window(object):
         self.y = y
         self.width = width
         self.height = height
+        tcod.console_clear(0)
         self.console = tcod.console_new(width, height)
 
     def blit(self):
@@ -212,8 +219,6 @@ class UI(object):
     state = States.DEFAULT
 
     def __init__(self):
-        tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, b"Frogue", False)
-        tcod.sys_set_fps(30)
         self.map_window = MapWindow(
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
@@ -396,6 +401,36 @@ def menu(header, options, width, highlighted=[]):
         if index >= 0 and index < len(options):
             return index
         return None
+
+
+class MainMenuChoice(Enum):
+    PLAY = 1
+    EXIT = 2
+
+
+def handle_main_menu():
+    """ Returns a MainMenuChoice for the player's choice.
+    """
+    img = tcod.image_load(b'menu_background.png')
+
+    while not tcod.console_is_window_closed():
+        # show the background image, at twice the regular console resolution
+        tcod.image_blit_2x(img, 0, 0, 0)
+
+        # show the game's title
+        tcod.console_set_default_foreground(0, tcod.white)
+        tcod.console_print_ex(0, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 4,
+                              tcod.BKGND_NONE, tcod.CENTER,
+                              bytes(GAME_NAME, 'utf-8'))
+
+        # show options and wait for the player's choice
+        choice = menu(
+            '', ['Play', 'Quit'], 24)
+
+        if choice == 0:  # new game
+            return MainMenuChoice.PLAY
+        elif choice == 1 or choice == 'escape':  # quit
+            return MainMenuChoice.EXIT
 
 
 def create_drawable_from_json(info):

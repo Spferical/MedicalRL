@@ -3,6 +3,8 @@ from util import Pos
 
 DEBUG = True
 
+GAME_NAME = "MedicalRL"
+
 # window dimensions
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 40
