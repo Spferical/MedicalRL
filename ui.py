@@ -258,6 +258,10 @@ class UI(object):
             char = chr(key.c)
         else:
             char = None
+
+        if key.vk == tcod.KEY_F11:
+            tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
         if self.state == States.DEFAULT:
             if char in DIRECTION_KEYS:
                 return game.attempt_player_move(DIRECTION_KEYS[char])
