@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 import math
 import random
 import constants
@@ -39,16 +40,26 @@ class TileInfo(object):
         self.item = item
 
 
+class Interactions(Enum):
+    NONE = 0
+    OPEN_DOOR = 1
+
+
 class Object(object):
 
-    def __init__(self, pos, name, passable=True):
+    def __init__(self, pos, name, passable=True,
+                 interaction=Interactions.NONE, pickup=False):
         """
         pos: a tuple (x, y)
         passable: whether the player can move into the same square as this item
+        interaction: enum representing what the player can do with this item
+        pickup: whether the player can pick up this item
         """
         self.pos = Pos(pos)
         self.name = name
         self.is_passable = passable
+        self.interaction = interaction
+        self.pickup = pickup
         events.events.send(events.Event(events.EventType.BIRTH,
                                         self))
 
@@ -313,6 +324,15 @@ def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
                 yield (x1, y1)
 
 
+def create_closed_door(pos):
+    return Object(pos, 'closed door', passable=False,
+                  interaction=Interactions.OPEN_DOOR)
+
+
+def create_open_door(pos):
+    return Object(pos, 'open door', passable=True)
+
+
 def try_to_dig_hospital_room(level, entrance, direction):
     rect = try_to_dig_room(level, entrance, direction, 3, 3,
                            name='hospital room')
@@ -320,6 +340,7 @@ def try_to_dig_hospital_room(level, entrance, direction):
         # room was successfully dug
         # add the door
         dig(level, entrance.x, entrance.y)
+        level.objects[entrance] = create_closed_door(entrance)
 
         # populate the room with items
         # stick a bed across from the entrance

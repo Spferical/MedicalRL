@@ -13,6 +13,16 @@
             "char": "=",
             "fg_color": "white",
             "bg_color": "blue"
+        },
+        "closed door": {
+            "char": "+",
+            "fg_color": "sepia",
+            "bg_color": "black"
+        },
+        "open door": {
+            "char": "'",
+            "fg_color": "sepia",
+            "bg_color": "black"
         }
     }
 }

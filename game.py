@@ -83,18 +83,31 @@ class Game(object):
         player = self.world.player
         old_pos = player.pos
         new_pos = player.pos + direction
-        if not self.player_level.is_blocked(new_pos) \
-           and player.can_move(new_pos):
-
+        # check for item in spot
+        obj = self.player_level.get_object(new_pos)
+        if obj and not obj.is_passable \
+                and obj.interaction != world.Interactions.NONE:
+            # we want to interact with this object
+            # maybe open up a gui, or something
+            if obj.interaction == world.Interactions.OPEN_DOOR:
+                # the object is a closed door
+                # replace it with an open door
+                self.player_level.objects[new_pos] = \
+                        world.create_open_door(new_pos)
+        elif not self.player_level.is_blocked(new_pos) \
+                and player.can_move(new_pos):
+            # message if we entered a new room
             old_room_id = self.player_level[old_pos].room_id
             new_room_id = self.player_level[new_pos].room_id
             if new_room_id != 0 and new_room_id != old_room_id:
-                # player entered a new room
                 self.ui.messages_window.message(
                         "You enter a " + self.player_level.rooms[new_room_id] +
                         '.')
+
+            # do the actual move
             player.pos = new_pos
             events.events.do_move_event(player, old_pos)
+
             self.update_fov()
             return True
 
