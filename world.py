@@ -70,7 +70,7 @@ class Level(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Tile('stone wall', blocked=True, opaque=True)
+        self.tiles = [[Tile('hospital wall', blocked=True, opaque=True)
                        for y in range(height)]
                       for x in range(width)]
         self.up_stairs_pos = self.down_stairs_pos = None
@@ -107,7 +107,7 @@ class Level(object):
     def __getitem__(self, key):
         x, y = key
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
-            return Tile('stone wall', blocked=True, opaque=True)
+            return Tile('hospital wall', blocked=True, opaque=True)
         return self.tiles[x][y]
 
     def __setitem__(self, key, value):
@@ -201,7 +201,7 @@ def mul(vec, scalar):
 def floors_in_or_by_rect(level, rect):
     for x in range(rect.left - 1, rect.right + 2):
         for y in range(rect.top - 1, rect.bottom + 2):
-            if level[x, y].name != 'stone wall':
+            if level[x, y].name != 'hospital wall':
                 return True
     return False
 
@@ -217,11 +217,11 @@ def reveal_tile(level, pos):
 
 
 def dig(level, x, y, room_id=0):
-    level[x, y] = Tile('stone floor', room_id=room_id)
+    level[x, y] = Tile('tile floor', room_id=room_id)
 
 
 def undig(level, x, y):
-    level[x, y] = Tile('stone wall', blocked=True, opaque=True)
+    level[x, y] = Tile('hospital wall', blocked=True, opaque=True)
 
 
 class Rect(object):

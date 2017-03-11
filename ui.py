@@ -451,8 +451,8 @@ def draw_cell(con, pos, char, fg, bg=None):
 
 drawables = {
     "player": Drawable('@', tcod.white),
-    "stone wall": Drawable('#', tcod.grey, bg=tcod.black),
-    "stone floor": Drawable('.', tcod.grey, bg=tcod.black),
+    "hospital wall": Drawable('#', tcod.white, bg=tcod.black),
+    "tile floor": Drawable('.', tcod.white, bg=tcod.black),
     "up stairs": Drawable('<', tcod.white, bg=tcod.black),
     "down stairs": Drawable('>', tcod.white, bg=tcod.black),
     "unknown": Drawable(' ', tcod.white, bg=tcod.black),
