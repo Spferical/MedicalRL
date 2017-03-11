@@ -20,6 +20,7 @@ class Game(object):
             events.EventType.TILE_REVEALED, self.handle_tile_reveal)
         self.update_fov()
         events.events.do_move_event(self.world.player, None)
+        self.update_player_status()
         self.ui.render()
 
     @property
@@ -78,6 +79,10 @@ class Game(object):
         level = self.world.levels[self.world.player.dlevel]
         level[event.info.pos].explored = True
 
+    def update_player_status(self):
+        events.events.send(events.Event(
+            events.EventType.PLAYER_STATUS_UPDATE, self.world.player))
+
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""
         player = self.world.player
@@ -95,6 +100,7 @@ class Game(object):
                 self.player_level.objects[new_pos] = \
                         world.create_open_door(new_pos)
                 self.update_fov()
+                return True
         elif not self.player_level.is_blocked(new_pos) \
                 and player.can_move(new_pos):
             # message if we entered a new room
@@ -110,6 +116,7 @@ class Game(object):
             events.events.do_move_event(player, old_pos)
 
             self.update_fov()
+            self.update_player_status()
             return True
 
     def run(self):

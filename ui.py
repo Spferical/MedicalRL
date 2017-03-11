@@ -173,7 +173,7 @@ class StatusBar(Window):
         if background_color is not None:
             tcod.console_set_default_background(self.console, background_color)
             tcod.console_rect(self.console, 0, 0, self.width,
-                              self.height, False, tcod.BKGND_SCREEN)
+                              self.height, False, tcod.BKGND_SET)
         x = 0
         list_of_statuses = [(k, v) for k, v in values.items()]
         list_of_statuses.sort(key=lambda pair: pair[0])
@@ -232,10 +232,6 @@ class UI(object):
             SCREEN_WIDTH // 4, SCREEN_HEIGHT // 4)
         self.status_bar = StatusBar(
             0, SCREEN_HEIGHT - 1, SCREEN_WIDTH, 1)
-        self.status_bar.update(
-            {"a": ("bingo", tcod.red, tcod.blue), "b": (
-                "cat", tcod.green, tcod.yellow)},
-            background_color=tcod.dark_grey)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
         events.events.add_callback(events.EventType.BIRTH,
@@ -246,6 +242,8 @@ class UI(object):
                                    self.handle_hidden)
         events.events.add_callback(events.EventType.MESSAGE,
                                    self.handle_message)
+        events.events.add_callback(events.EventType.PLAYER_STATUS_UPDATE,
+                                   self.handle_player_status_update)
         self.memory = {}
         self.vision = set()
 
@@ -323,6 +321,15 @@ class UI(object):
         if memory and event.info.pos in self.vision:
             memory.item = event.info
             self.draw_tile(event.info.pos)
+
+    def handle_player_status_update(self, event):
+        player = event.info
+        self.status_bar.update({
+            })
+        self.status_bar.update({
+            "hp": (str(player.hp), tcod.red, tcod.black),
+            "pos": (str(player.pos), tcod.green, tcod.yellow)
+            }, background_color=tcod.dark_grey)
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
