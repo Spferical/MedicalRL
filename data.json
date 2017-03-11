@@ -3,17 +3,31 @@
         "name": "player",
         "char": "@",
         "fg_color": "white",
-        "bg_color": "black",
-        "hp": 5
+        "hp": 5,
+        "bg_color": "black"
     },
     "factions": {},
     "mobs": {},
     "objects": {
         "bed": {
-            "name": "bed",
             "char": "=",
             "fg_color": "white",
             "bg_color": "blue"
+        },
+        "closed door": {
+            "char": "+",
+            "fg_color": "sepia",
+            "bg_color": "black"
+        },
+        "open door": {
+            "char": "`",
+            "fg_color": "sepia",
+            "bg_color": "black"
+        },
+        "pregnancy test": {
+            "char": "'",
+            "fg_color": "pink",
+            "bg_color": "black"
         }
     }
 }

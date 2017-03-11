@@ -9,6 +9,8 @@ class EventType(Enum):
     TILE_HIDDEN = 5
     MESSAGE = 6
     BIRTH = 7
+    PLAYER_STATUS_UPDATE = 8
+    REMOVAL = 9
 
 
 class MoveInfo(object):

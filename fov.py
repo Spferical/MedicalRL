@@ -42,7 +42,7 @@ def cast_light(start_pos, start_y, start_slope, end_slope, radius, quad,
 
             yield pos
 
-            if level[pos].opaque:
+            if level.is_opaque(pos):
                 if prev_blocked:
                     new_start = right_slope
                 else:

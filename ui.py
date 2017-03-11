@@ -1,11 +1,17 @@
 from enum import Enum
 import tcod
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG, \
+    GAME_NAME
 import events
 from mob import MobState
 from util import Pos
 from textwrap import wrap
 import world
+
+
+def init_tcod():
+    tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, b"Frogue", False)
+    tcod.sys_set_fps(30)
 
 
 class Drawable(object):
@@ -166,7 +172,7 @@ class StatusBar(Window):
         if background_color is not None:
             tcod.console_set_default_background(self.console, background_color)
             tcod.console_rect(self.console, 0, 0, self.width,
-                              self.height, False, tcod.BKGND_SCREEN)
+                              self.height, False, tcod.BKGND_SET)
         x = 0
         list_of_statuses = [(k, v) for k, v in values.items()]
         list_of_statuses.sort(key=lambda pair: pair[0])
@@ -202,29 +208,29 @@ class ExamineWindow(Window):
             if DEBUG:
                 tcod.console_print(self.console, 3, 3, str(memory.mob.pos))
                 tcod.console_print(self.console, 3, 4, str(memory.mob.target))
+        elif memory.item:
+            drawables[memory.item.name].draw(self.console, Pos(1, 1))
+            tcod.console_print(self.console, 3, 1, memory.item.name)
         else:
             drawables[memory.tile_name].draw(self.console, Pos(1, 1))
             tcod.console_print(self.console, 3, 1, memory.tile_name)
 
 
 class UI(object):
-    """Handles rendering and input."""
+    """Singleton that handles rendering and input."""
     state = States.DEFAULT
 
     def __init__(self):
         self.map_window = MapWindow(
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
-            (3 * SCREEN_WIDTH) // 4, 0, SCREEN_WIDTH // 4, SCREEN_HEIGHT - 1)
+            (3 * SCREEN_WIDTH) // 4, 0,
+            SCREEN_WIDTH // 4, SCREEN_HEIGHT * 3 // 4)
         self.examine_window = ExamineWindow(
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 1)
+            SCREEN_WIDTH * 3 // 4, SCREEN_HEIGHT * 3 // 4,
+            SCREEN_WIDTH // 4, SCREEN_HEIGHT // 4)
         self.status_bar = StatusBar(
             0, SCREEN_HEIGHT - 1, SCREEN_WIDTH, 1)
-        self.status_bar.update(
-            {"a": ("bingo", tcod.red, tcod.blue), "b": (
-                "cat", tcod.green, tcod.yellow)},
-            background_color=tcod.dark_grey)
         events.events.add_callback(events.EventType.MOVE,
                                    self.handle_move)
         events.events.add_callback(events.EventType.BIRTH,
@@ -235,6 +241,10 @@ class UI(object):
                                    self.handle_hidden)
         events.events.add_callback(events.EventType.MESSAGE,
                                    self.handle_message)
+        events.events.add_callback(events.EventType.PLAYER_STATUS_UPDATE,
+                                   self.handle_player_status_update)
+        events.events.add_callback(events.EventType.REMOVAL,
+                                   self.handle_removal)
         self.memory = {}
         self.vision = set()
 
@@ -246,27 +256,61 @@ class UI(object):
                                  key, mouse)
         if key.c:
             char = chr(key.c)
-            if self.state == States.DEFAULT:
-                if char in DIRECTION_KEYS:
-                    return game.attempt_player_move(DIRECTION_KEYS[char])
-                elif char == 'x':
-                    self.state = States.EXAMINE
-                    self.map_window.center(game.world.player.pos)
-                    self.map_window.draw_cursor_at_center()
-                    self.examine_pos(game.world.player.pos)
-                elif char == '.':
-                    return True
-            elif self.state == States.EXAMINE:
-                if char in DIRECTION_KEYS:
-                    self.map_window.move(DIRECTION_KEYS[char])
-                    self.map_window.redraw_level(self.memory, self.vision)
-                    self.map_window.draw_cursor_at_center()
-                    self.examine_pos(self.map_window.center_pos)
-                elif key.vk == tcod.KEY_ESCAPE:
-                    self.state = States.DEFAULT
-                    self.map_window.center(game.world.player.pos)
-                    self.map_window.redraw_level(self.memory, self.vision)
-                    self.examine_window.clear()
+        else:
+            char = None
+
+        if key.vk == tcod.KEY_F11:
+            tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+        if self.state == States.DEFAULT:
+            if char in DIRECTION_KEYS:
+                return game.attempt_player_move(DIRECTION_KEYS[char])
+            elif char == 'x':
+                self.state = States.EXAMINE
+                self.map_window.center(game.world.player.pos)
+                self.map_window.draw_cursor_at_center()
+                self.examine_pos(game.world.player.pos)
+            elif char == '.':
+                return True
+            elif key.vk == tcod.KEY_ESCAPE:
+                result = menu("Escape Menu", ['Resume', 'Quit'], 24)
+                if result == 1:
+                    game.alive = False
+            elif key.vk in DIRECTION_KEYS:
+                return game.attempt_player_move(DIRECTION_KEYS[key.vk])
+            elif char == 'i':
+                inventory = game.world.player.body.inventory
+                if inventory:
+                    index = menu("Inventory",
+                                 [item.name for item in inventory], 24)
+                    if index is not None and index != 'escape':
+                        item = inventory[index]
+                        game.interact_with_object(item)
+                        if item.consumed_on_use:
+                            inventory.remove(item)
+                else:
+                    self.messages_window.message("You have no items.")
+            elif char == 'g':
+                obj = game.player_level.get_object(game.world.player.pos)
+                if obj is not None and obj.pickup:
+                    # try to pick it up
+                    game.player_level.pop_object(game.world.player.pos)
+                    game.world.player.body.inventory.append(obj)
+                    self.messages_window.message("You pick up the " + obj.name
+                                                 + '.')
+                else:
+                    self.messages_window.message("There are no items here.")
+        elif self.state == States.EXAMINE:
+            if char in DIRECTION_KEYS:
+                self.map_window.move(DIRECTION_KEYS[char])
+                self.map_window.redraw_level(self.memory, self.vision)
+                self.map_window.draw_cursor_at_center()
+                self.examine_pos(self.map_window.center_pos)
+            elif key.vk == tcod.KEY_ESCAPE:
+                self.state = States.DEFAULT
+                self.map_window.center(game.world.player.pos)
+                self.map_window.redraw_level(self.memory, self.vision)
+                self.examine_window.clear()
 
     def examine_pos(self, pos):
         memory = self.memory.get(pos, None)
@@ -288,6 +332,7 @@ class UI(object):
             self.message("You cannot see that location.", tcod.light_grey)
 
     def render(self):
+        tcod.console_clear(0)
         self.map_window.blit()
         self.messages_window.blit()
         self.status_bar.blit()
@@ -295,10 +340,26 @@ class UI(object):
         tcod.console_flush()
 
     def handle_birth(self, event):
-        # add mob to new memory position if we saw him enter
+        # new item on level
         memory = self.memory.get(event.info.pos, None)
         if memory and event.info.pos in self.vision:
             memory.item = event.info
+            self.draw_tile(event.info.pos)
+
+    def handle_player_status_update(self, event):
+        player = event.info
+        self.status_bar.update({
+            })
+        self.status_bar.update({
+            "hp": (str(player.hp), tcod.red, tcod.black),
+            "pos": (str(player.pos), tcod.green, tcod.yellow)
+            }, background_color=tcod.dark_grey)
+
+    def handle_removal(self, event):
+        # item removed on level
+        memory = self.memory.get(event.info.pos, None)
+        if memory and event.info.pos in self.vision:
+            memory.item = None
             self.draw_tile(event.info.pos)
 
     def handle_move(self, event):
@@ -328,9 +389,6 @@ class UI(object):
         self.vision.add(info.pos)
         self.memory[info.pos] = TileMemory(info.tile.name, info.mob, info.item)
         self.map_window.draw_tile(info.pos, self.memory, self.vision)
-        if info.mob:
-            self.messages_window.message(
-                "You see " + get_short_mob_description(info.mob))
 
     def handle_hidden(self, event):
         self.vision.remove(event.info.pos)
@@ -339,6 +397,35 @@ class UI(object):
     def handle_message(self, message):
         self.messages_window.message(message)
 
+
+def yes_no_menu(question):
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+    width = SCREEN_HEIGHT // 2
+    # calculate total height for the header (after auto-wrap) and one line per
+    # option
+    text = question + " (y/n)"
+    height = tcod.console_get_height_rect(0, 0, 0, width,
+                                          SCREEN_HEIGHT, text)
+    # create an off-screen console that represents our window
+    window = tcod.console_new(width, height)
+
+    tcod.console_set_default_foreground(window, tcod.white)
+    tcod.console_print_rect(window, 0, 0, width, height, text)
+
+    # blit the contents of "window" to the root console
+    x = SCREEN_WIDTH // 2 - width // 2
+    y = SCREEN_HEIGHT // 2 - height // 2
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.9)
+
+    # present the root console to the player and wait for a key-press
+    tcod.console_flush()
+    tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
+
+    # special case: changing to/from fullscreen
+    if key.vk == tcod.KEY_F11:
+        tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+    return chr(key.c) == 'y'
 
 def menu(header, options, width, highlighted=[]):
     """Basic, general-purpose menu.
@@ -377,7 +464,7 @@ def menu(header, options, width, highlighted=[]):
     # blit the contents of "window" to the root console
     x = SCREEN_WIDTH // 2 - width // 2
     y = SCREEN_HEIGHT // 2 - height // 2
-    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.9)
     # present the root console to the player and wait for a key-press
     tcod.console_flush()
     tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
@@ -396,6 +483,37 @@ def menu(header, options, width, highlighted=[]):
         return None
 
 
+class MainMenuChoice(Enum):
+    PLAY = 1
+    EXIT = 2
+
+
+def handle_main_menu():
+    """ Returns a MainMenuChoice for the player's choice.
+    """
+    img = tcod.image_load(b'menu_background.png')
+    tcod.console_clear(0)
+
+    while not tcod.console_is_window_closed():
+        # show the background image, at twice the regular console resolution
+        tcod.image_blit_2x(img, 0, 0, 0)
+
+        # show the game's title
+        tcod.console_set_default_foreground(0, tcod.white)
+        tcod.console_print_ex(0, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 4,
+                              tcod.BKGND_NONE, tcod.CENTER,
+                              bytes(GAME_NAME, 'utf-8'))
+
+        # show options and wait for the player's choice
+        choice = menu(
+            '', ['Play', 'Quit'], 24)
+
+        if choice == 0:  # new game
+            return MainMenuChoice.PLAY
+        elif choice == 1 or choice == 'escape':  # quit
+            return MainMenuChoice.EXIT
+
+
 def create_drawable_from_json(info):
     return Drawable(info["char"],
                     getattr(tcod, info["fg_color"]),
@@ -412,8 +530,8 @@ def draw_cell(con, pos, char, fg, bg=None):
 
 drawables = {
     "player": Drawable('@', tcod.white),
-    "stone wall": Drawable('#', tcod.grey, bg=tcod.black),
-    "stone floor": Drawable('.', tcod.grey, bg=tcod.black),
+    "hospital wall": Drawable('#', tcod.white, bg=tcod.black),
+    "tile floor": Drawable('.', tcod.white, bg=tcod.black),
     "up stairs": Drawable('<', tcod.white, bg=tcod.black),
     "down stairs": Drawable('>', tcod.white, bg=tcod.black),
     "unknown": Drawable(' ', tcod.white, bg=tcod.black),
@@ -424,5 +542,5 @@ drawables = {
 drawables["player"] = create_drawable_from_json(world.data["player"])
 for info in world.data["mobs"].values():
     drawables[info['name']] = create_drawable_from_json(info)
-for info in world.data["objects"].values():
-    drawables[info['name']] = create_drawable_from_json(info)
+for name, info in world.data["objects"].items():
+    drawables[name] = create_drawable_from_json(info)
