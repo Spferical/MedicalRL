@@ -83,6 +83,28 @@ class Game(object):
         events.events.send(events.Event(
             events.EventType.PLAYER_STATUS_UPDATE, self.world.player))
 
+    def interact_with_object(self, obj):
+        """
+        Returns whether an action took place.
+        """
+        if obj.interaction == world.Interactions.OPEN_DOOR:
+            # the object is a closed door
+            # replace it with an open door
+            self.player_level.objects[obj.pos] = \
+                    world.create_open_door(obj.pos)
+            self.update_fov()
+            return True
+        elif obj.interaction == world.Interactions.PREGNANCY_TEST:
+            self.ui.messages_window.message(
+                    "You perform a pregnancy test on yourself...")
+            if random.random() < 0.01:
+                self.ui.messages_window.message(
+                        "You are pregnant!")
+            else:
+                self.ui.messages_window.message(
+                        "You are not pregnant.")
+            return True
+
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""
         player = self.world.player
@@ -94,13 +116,9 @@ class Game(object):
                 and obj.interaction != world.Interactions.NONE:
             # we want to interact with this object
             # maybe open up a gui, or something
-            if obj.interaction == world.Interactions.OPEN_DOOR:
-                # the object is a closed door
-                # replace it with an open door
-                self.player_level.objects[new_pos] = \
-                        world.create_open_door(new_pos)
-                self.update_fov()
+            if self.interact_with_object(obj):
                 return True
+
         elif not self.player_level.is_blocked(new_pos) \
                 and player.can_move(new_pos):
             # message if we entered a new room

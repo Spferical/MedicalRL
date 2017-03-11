@@ -43,12 +43,14 @@ class TileInfo(object):
 class Interactions(Enum):
     NONE = 0
     OPEN_DOOR = 1
+    PREGNANCY_TEST = 2
 
 
 class Object(object):
 
     def __init__(self, pos, name, passable=True, opaque=False,
-                 interaction=Interactions.NONE, pickup=False):
+                 interaction=Interactions.NONE, pickup=False,
+                 consumed_on_use=False):
         """
         pos: a tuple (x, y)
         passable: whether the player can move into the same square as this item
@@ -61,6 +63,7 @@ class Object(object):
         self.opaque = opaque
         self.interaction = interaction
         self.pickup = pickup
+        self.consumed_on_use = consumed_on_use
         events.events.send(events.Event(events.EventType.BIRTH,
                                         self))
 
@@ -89,9 +92,11 @@ class Level(object):
     def get_mob(self, pos):
         return self.mobs.get(pos, None)
 
-    def move_object(self, from_pos, to_pos):
-        if from_pos in self.objects:
-            self.mobs[to_pos] = self.mobs.pop(from_pos)
+    def pop_object(self, pos):
+        obj = self.objects.pop(pos)
+        events.events.send(events.Event(events.EventType.REMOVAL,
+                                        obj))
+        return obj
 
     def get_object(self, pos):
         return self.objects.get(pos, None)
@@ -347,11 +352,21 @@ def try_to_dig_hospital_room(level, entrance, direction):
         dig(level, entrance.x, entrance.y)
         level.objects[entrance] = create_closed_door(entrance)
 
-        # populate the room with items
         # stick a bed across from the entrance
         corners = (Pos(rect.left, rect.top), Pos(rect.right, rect.bottom))
         bed_corner = max(corners, key=lambda pos: entrance.distance(pos))
         level.objects[bed_corner] = Object(bed_corner, 'bed', passable=False)
+
+        # populate the room with items
+        for i in range(3):
+            x = random.randint(rect.left, rect.right)
+            y = random.randint(rect.top, rect.bottom)
+            pos = Pos(x, y)
+            if not level.get_object(pos):
+                item = Object(pos, "pregnancy test", pickup=True,
+                              interaction=Interactions.PREGNANCY_TEST,
+                              consumed_on_use=True)
+                level.objects[pos] = item
 
 
 def generate_hospital():

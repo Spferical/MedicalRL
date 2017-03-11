@@ -68,7 +68,6 @@ class Window(object):
         self.y = y
         self.width = width
         self.height = height
-        tcod.console_clear(0)
         self.console = tcod.console_new(width, height)
 
     def blit(self):
@@ -244,6 +243,8 @@ class UI(object):
                                    self.handle_message)
         events.events.add_callback(events.EventType.PLAYER_STATUS_UPDATE,
                                    self.handle_player_status_update)
+        events.events.add_callback(events.EventType.REMOVAL,
+                                   self.handle_removal)
         self.memory = {}
         self.vision = set()
 
@@ -272,11 +273,33 @@ class UI(object):
             elif char == '.':
                 return True
             elif key.vk == tcod.KEY_ESCAPE:
-                result = menu("Escape menu", ['Resume', 'Quit'], 24)
+                result = menu("Escape Menu", ['Resume', 'Quit'], 24)
                 if result == 1:
                     game.alive = False
             elif key.vk in DIRECTION_KEYS:
                 return game.attempt_player_move(DIRECTION_KEYS[key.vk])
+            elif char == 'i':
+                inventory = game.world.player.body.inventory
+                if inventory:
+                    index = menu("Inventory",
+                                 [item.name for item in inventory], 24)
+                    if index is not None:
+                        item = inventory[index]
+                        game.interact_with_object(item)
+                        if item.consumed_on_use:
+                            inventory.remove(item)
+                else:
+                    self.messages_window.message("You have no items.")
+            elif char == 'g':
+                obj = game.player_level.get_object(game.world.player.pos)
+                if obj is not None and obj.pickup:
+                    # try to pick it up
+                    game.player_level.pop_object(game.world.player.pos)
+                    game.world.player.body.inventory.append(obj)
+                    self.messages_window.message("You pick up the " + obj.name
+                                                 + '.')
+                else:
+                    self.messages_window.message("There are no items here.")
         elif self.state == States.EXAMINE:
             if char in DIRECTION_KEYS:
                 self.map_window.move(DIRECTION_KEYS[char])
@@ -309,6 +332,7 @@ class UI(object):
             self.message("You cannot see that location.", tcod.light_grey)
 
     def render(self):
+        tcod.console_clear(0)
         self.map_window.blit()
         self.messages_window.blit()
         self.status_bar.blit()
@@ -316,7 +340,7 @@ class UI(object):
         tcod.console_flush()
 
     def handle_birth(self, event):
-        # add mob to new memory position if we saw him enter
+        # new item on level
         memory = self.memory.get(event.info.pos, None)
         if memory and event.info.pos in self.vision:
             memory.item = event.info
@@ -330,6 +354,13 @@ class UI(object):
             "hp": (str(player.hp), tcod.red, tcod.black),
             "pos": (str(player.pos), tcod.green, tcod.yellow)
             }, background_color=tcod.dark_grey)
+
+    def handle_removal(self, event):
+        # item removed on level
+        memory = self.memory.get(event.info.pos, None)
+        if memory and event.info.pos in self.vision:
+            memory.item = None
+            self.draw_tile(event.info.pos)
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave

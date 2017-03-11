@@ -20,8 +20,13 @@
             "bg_color": "black"
         },
         "open door": {
-            "char": "'",
+            "char": "`",
             "fg_color": "sepia",
+            "bg_color": "black"
+        },
+        "pregnancy test": {
+            "char": "'",
+            "fg_color": "pink",
             "bg_color": "black"
         }
     }

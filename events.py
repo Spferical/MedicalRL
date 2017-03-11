@@ -10,6 +10,7 @@ class EventType(Enum):
     MESSAGE = 6
     BIRTH = 7
     PLAYER_STATUS_UPDATE = 8
+    REMOVAL = 9
 
 
 class MoveInfo(object):
