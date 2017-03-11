@@ -40,7 +40,7 @@ class Player(Mob):
 
     def __init__(self, pos, dlevel, info):
         super().__init__(pos, dlevel, info)
-        self.body = Body(info)
+        self.body = Body(info, self)
 
     def can_move(self, pos):
         return True

@@ -53,5 +53,8 @@ class EventHandler(object):
                 return True
         return False
 
-
 events = EventHandler()
+
+
+def message(message):
+    events.send(Event(EventType.MESSAGE, message))

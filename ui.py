@@ -349,11 +349,19 @@ class UI(object):
     def handle_player_status_update(self, event):
         player = event.info
         self.status_bar.update({
-            })
-        self.status_bar.update({
-            "hp": (str(player.hp), tcod.red, tcod.black),
+        })
+        ns = {
             "pos": (str(player.pos), tcod.green, tcod.yellow)
-            }, background_color=tcod.dark_grey)
+        }
+        for st in player.body.visible:
+            value = player.body.gs(st)
+            if isinstance(value, float):
+                value = round(value, 2)
+            if player.body.is_critical(st):
+                ns[st] = (str(value), tcod.light_grey, tcod.red)
+            else:
+                ns[st] = (str(value), tcod.light_grey, tcod.light_grey)
+        self.status_bar.update(ns, background_color=tcod.dark_grey)
 
     def handle_removal(self, event):
         # item removed on level
@@ -395,7 +403,7 @@ class UI(object):
         self.draw_tile(event.info.pos)
 
     def handle_message(self, message):
-        self.messages_window.message(message)
+        self.messages_window.message(message.info)
 
 
 def yes_no_menu(question):
@@ -426,6 +434,7 @@ def yes_no_menu(question):
     if key.vk == tcod.KEY_F11:
         tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
     return chr(key.c) == 'y'
+
 
 def menu(header, options, width, highlighted=[]):
     """Basic, general-purpose menu.

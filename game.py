@@ -14,6 +14,7 @@ class Game(object):
     alive = True
 
     def __init__(self):
+        self.accum = 1
         self.ui = ui.UI()
         self.world = world.generate_world()
         events.events.add_callback(
@@ -49,6 +50,9 @@ class Game(object):
         for mob in level.mobs.values():
             if mob != self.world.player:
                 self.update_mob(mob, level)
+        for i in range(self.accum):
+            self.world.player.body.on_tick()
+        self.accum = 1
 
     def update_mob(self, mob, level):
         if mob.state == MobState.WANDERING:
@@ -87,22 +91,23 @@ class Game(object):
         """
         Returns whether an action took place.
         """
+        self.accum += self.world.player.body.on_interact(obj)
         if obj.interaction == world.Interactions.OPEN_DOOR:
             # the object is a closed door
             # replace it with an open door
             self.player_level.objects[obj.pos] = \
-                    world.create_open_door(obj.pos)
+                world.create_open_door(obj.pos)
             self.update_fov()
             return True
         elif obj.interaction == world.Interactions.PREGNANCY_TEST:
             self.ui.messages_window.message(
-                    "You perform a pregnancy test on yourself...")
+                "You perform a pregnancy test on yourself...")
             if random.random() < 0.01:
                 self.ui.messages_window.message(
-                        "You are pregnant!")
+                    "You are pregnant!")
             else:
                 self.ui.messages_window.message(
-                        "You are not pregnant.")
+                    "You are not pregnant.")
             return True
 
     def attempt_player_move(self, direction):
@@ -126,8 +131,8 @@ class Game(object):
             new_room_id = self.player_level[new_pos].room_id
             if new_room_id != 0 and new_room_id != old_room_id:
                 self.ui.messages_window.message(
-                        "You enter a " + self.player_level.rooms[new_room_id] +
-                        '.')
+                    "You enter a " + self.player_level.rooms[new_room_id] +
+                    '.')
 
             # do the actual move
             player.pos = new_pos
@@ -137,7 +142,8 @@ class Game(object):
             self.update_player_status()
             return True
 
-    def run(self):
+    def run(self, character_info={'ADDITONAL_FATIGUE': []}):
+        self.world.player.body.on_game_start(character_info)
         while self.alive and not tcod.console_is_window_closed():
             if self.ui.handle_input(self):
                 self.update_mobs()
