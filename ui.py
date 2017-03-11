@@ -225,7 +225,7 @@ class UI(object):
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
             SCREEN_WIDTH // 2, 0,
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT)
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.examine_window = ExamineWindow(
             SCREEN_WIDTH * 3 // 4, SCREEN_HEIGHT * 3 // 4,
             SCREEN_WIDTH // 4, SCREEN_HEIGHT // 4)
