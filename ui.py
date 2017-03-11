@@ -209,6 +209,9 @@ class ExamineWindow(Window):
             if DEBUG:
                 tcod.console_print(self.console, 3, 3, str(memory.mob.pos))
                 tcod.console_print(self.console, 3, 4, str(memory.mob.target))
+        elif memory.item:
+            drawables[memory.item.name].draw(self.console, Pos(1, 1))
+            tcod.console_print(self.console, 3, 1, memory.item.name)
         else:
             drawables[memory.tile_name].draw(self.console, Pos(1, 1))
             tcod.console_print(self.console, 3, 1, memory.tile_name)
