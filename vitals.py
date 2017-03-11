@@ -13,7 +13,17 @@ class Body:
             'MEDIUM_FATIGUE': 40,
             'HEAVY_FATIGUE': 60,
             'CRITICAL_FATIGUE': 70,
-            'FATIGUE_MESSAGE_PROB': 0.03,
+            'FATIGUE_MESSAGE_PROB': 0.05,
+
+            'MAX_NUTRITION': 1000,
+            'BASE_NUTRITION': 900,
+            'HUNGER_PENALTY': 50,
+            'LIGHT_HUNGER': 0.8,
+            'MEDIUM_HUNGER': 0.7,
+            'HEAVY_HUNGER': 0.4,
+            'CRITICAL_HUNGER': 0.3,
+            'HUNGER_MESSAGE_PROB': 0.05,
+
             'INJURY_MOD': 10,
             'OPEN_DOOR_TIME': 3
         }
@@ -52,26 +62,38 @@ class Body:
     def on_game_start(self, character_info):
         ''' Called when the game starts '''
 
+        self.ss('nutrition', self.const('BASE_NUTRITION'))
+
         # Base Fatigue for character
         base_fatigue = self.const('BASE_FATIGUE')
 
         # Additional Fatigue for character
         additional_fatigue = sum(character_info['ADDITONAL_FATIGUE'])
 
+        # Add hunger induced-fatigue
+        additional_fatigue += \
+            (1 - self.gs('nutrition') / self.const('MAX_NUTRITION')) * \
+            self.const('HUNGER_PENALTY')
+
         # Set fatigue value
         self.ss('fatigue', base_fatigue + additional_fatigue)
 
-        self.visible = set(('fatigue',))
+        self.visible = set(('fatigue', 'nutrition'))
 
     def is_critical(self, stat_name):
         ''' Returns True if a stat is critical '''
         if stat_name == 'fatigue':
             if self.gs(stat_name) > self.const('CRITICAL_FATIGUE'):
                 return True
+        if stat_name == 'nutrition':
+            if self.gs(stat_name) / self.const('MAX_NUTRITION') \
+               < self.const('CRITICAL_HUNGER'):
+                return True
 
     def on_tick(self):
         ''' Called every action in game '''
         self.handle_fatigue()
+        self.handle_nutrition()
 
     def on_interact(self, obj):
         ''' Called upon interacting with objects '''
@@ -107,3 +129,19 @@ class Body:
                     message('You feel tired')
                 elif self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
                     message('You feel sleepy')
+
+    def handle_nutrition(self):
+        self.ss('nutrition', self.gs('nutrition') - 1)
+        if random() < self.const('HUNGER_MESSAGE_PROB'):
+            if self.gs('nutrition') / self.const('MAX_NUTRITION') \
+               < self.const('CRITICAL_HUNGER'):
+                message("You are starving to death")
+            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
+                    < self.const('HEAVY_HUNGER'):
+                message("Your belly aches with hunger cramps")
+            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
+                    < self.const('MEDIUM_HUNGER'):
+                message("You feel very hungry")
+            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
+                    < self.const('LIGHT_HUNGER'):
+                message("You feel hungry")
