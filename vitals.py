@@ -59,15 +59,17 @@ class Body:
         self.visible = set(('fatigue',))
 
     def is_critical(self, stat_name):
+        ''' Returns True if a stat is critical '''
         if stat_name == 'fatigue':
             if self.gs(stat_name) > self.const('CRITICAL_FATIGUE'):
                 return True
 
     def on_tick(self):
-        ''' Called every second in game '''
+        ''' Called every action in game '''
         self.handle_fatigue()
 
     def on_interact(self, obj):
+        ''' Called upon interacting with objects '''
         action_time = 1
         k = 1
         if obj.name == 'closed door':
