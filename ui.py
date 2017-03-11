@@ -224,8 +224,8 @@ class UI(object):
         self.map_window = MapWindow(
             0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 1)
         self.messages_window = MessagesWindow(
-            (3 * SCREEN_WIDTH) // 4, 0,
-            SCREEN_WIDTH // 4, SCREEN_HEIGHT * 3 // 4)
+            SCREEN_WIDTH // 2, 0,
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT)
         self.examine_window = ExamineWindow(
             SCREEN_WIDTH * 3 // 4, SCREEN_HEIGHT * 3 // 4,
             SCREEN_WIDTH // 4, SCREEN_HEIGHT // 4)
