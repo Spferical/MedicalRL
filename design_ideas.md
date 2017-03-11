@@ -7,6 +7,12 @@ Fatigue algorithm:
 - Sleeping reduces fatigue at $BASE_FATIGUE_RECOVER_RATE * DISEASE_FATIGUE_REGEN_PENALTY$.
 - Sleeping lasts for $RAND(0.8, 1.2) * REQUIRED_SLEEP_TIME$. If fatigue is greater than $VERY_FATIGUED$, then sleeping lasts for $RAND(1.0, 1.5) * REQUIRED_SLEEP_TIME$.
 
+Nutrition algorithm:
+- Nutrition starts at $BASE_NUTRITION$
+- Food increases nutrition by the amount of nutrition of the food
+- Every turn, nutrition goes down by 1
+- Nutrition acts as an additional source of base fatigue: $1 - (BASE_NUTRITION / MAX_NUTRITION) * HUNGER_PENALTY$.
+
 Blood sugar algorithm:
 
 - Blood sugar during fasting is normally at 85 mg/dl.
