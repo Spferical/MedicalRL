@@ -94,6 +94,7 @@ class Game(object):
                 # replace it with an open door
                 self.player_level.objects[new_pos] = \
                         world.create_open_door(new_pos)
+                self.update_fov()
         elif not self.player_level.is_blocked(new_pos) \
                 and player.can_move(new_pos):
             # message if we entered a new room

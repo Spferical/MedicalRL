@@ -47,7 +47,7 @@ class Interactions(Enum):
 
 class Object(object):
 
-    def __init__(self, pos, name, passable=True,
+    def __init__(self, pos, name, passable=True, opaque=False,
                  interaction=Interactions.NONE, pickup=False):
         """
         pos: a tuple (x, y)
@@ -58,6 +58,7 @@ class Object(object):
         self.pos = Pos(pos)
         self.name = name
         self.is_passable = passable
+        self.opaque = opaque
         self.interaction = interaction
         self.pickup = pickup
         events.events.send(events.Event(events.EventType.BIRTH,
@@ -98,6 +99,10 @@ class Level(object):
     def is_blocked(self, pos):
         return self[pos].blocked or pos in self.mobs or \
             (pos in self.objects and not self.objects[pos].is_passable)
+
+    def is_opaque(self, pos):
+        return self[pos].opaque \
+                or pos in self.objects and self.objects[pos].opaque
 
     def __getitem__(self, key):
         x, y = key
@@ -325,7 +330,7 @@ def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
 
 
 def create_closed_door(pos):
-    return Object(pos, 'closed door', passable=False,
+    return Object(pos, 'closed door', passable=False, opaque=True,
                   interaction=Interactions.OPEN_DOOR)
 
 
