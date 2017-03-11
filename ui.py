@@ -416,7 +416,7 @@ def yes_no_menu(question):
     # blit the contents of "window" to the root console
     x = SCREEN_WIDTH // 2 - width // 2
     y = SCREEN_HEIGHT // 2 - height // 2
-    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.9)
 
     # present the root console to the player and wait for a key-press
     tcod.console_flush()
@@ -464,7 +464,7 @@ def menu(header, options, width, highlighted=[]):
     # blit the contents of "window" to the root console
     x = SCREEN_WIDTH // 2 - width // 2
     y = SCREEN_HEIGHT // 2 - height // 2
-    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.9)
     # present the root console to the player and wait for a key-press
     tcod.console_flush()
     tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
