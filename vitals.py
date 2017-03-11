@@ -1,4 +1,5 @@
 from events import events, message, Event, EventType
+from random import random
 
 
 class Body:
@@ -8,7 +9,11 @@ class Body:
             'BASE_FATIGUE': 10,
             'MAX_FATIGUE': 100,
             'FATIGUE_RATE': 1.006,
+            'LIGHT_FATIGUE': 20,
+            'MEDIUM_FATIGUE': 40,
+            'HEAVY_FATIGUE': 60,
             'CRITICAL_FATIGUE': 70,
+            'FATIGUE_MESSAGE_PROB': 0.03,
             'INJURY_MOD': 10,
             'OPEN_DOOR_TIME': 3
         }
@@ -93,3 +98,12 @@ class Body:
             pass
         else:
             self.ss('fatigue', self.gs('fatigue') * self.const('FATIGUE_RATE'))
+            if random() < self.const('FATIGUE_MESSAGE_PROB'):
+                if self.gs('fatigue') > self.const('CRITICAL_FATIGUE'):
+                    message('You feel like you are about to pass out')
+                elif self.gs('fatigue') > self.const('HEAVY_FATIGUE'):
+                    message('You feel incredibly tired')
+                elif self.gs('fatigue') > self.const('MEDIUM_FATIGUE'):
+                    message('You feel tired')
+                elif self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
+                    message('You feel sleepy')
