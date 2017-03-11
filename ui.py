@@ -283,7 +283,7 @@ class UI(object):
                 if inventory:
                     index = menu("Inventory",
                                  [item.name for item in inventory], 24)
-                    if index is not None:
+                    if index is not None and index != 'escape':
                         item = inventory[index]
                         game.interact_with_object(item)
                         if item.consumed_on_use:
