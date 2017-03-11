@@ -256,31 +256,35 @@ class UI(object):
                                  key, mouse)
         if key.c:
             char = chr(key.c)
-            if self.state == States.DEFAULT:
-                if char in DIRECTION_KEYS:
-                    return game.attempt_player_move(DIRECTION_KEYS[char])
-                elif char == 'x':
-                    self.state = States.EXAMINE
-                    self.map_window.center(game.world.player.pos)
-                    self.map_window.draw_cursor_at_center()
-                    self.examine_pos(game.world.player.pos)
-                elif char == '.':
-                    return True
-                elif key.vk == tcod.KEY_ESCAPE:
-                    result = menu("Escape menu", ['Resume', 'Quit'], 24)
-                    if result == 1:
-                        game.alive = False
-            elif self.state == States.EXAMINE:
-                if char in DIRECTION_KEYS:
-                    self.map_window.move(DIRECTION_KEYS[char])
-                    self.map_window.redraw_level(self.memory, self.vision)
-                    self.map_window.draw_cursor_at_center()
-                    self.examine_pos(self.map_window.center_pos)
-                elif key.vk == tcod.KEY_ESCAPE:
-                    self.state = States.DEFAULT
-                    self.map_window.center(game.world.player.pos)
-                    self.map_window.redraw_level(self.memory, self.vision)
-                    self.examine_window.clear()
+        else:
+            char = None
+        if self.state == States.DEFAULT:
+            if char in DIRECTION_KEYS:
+                return game.attempt_player_move(DIRECTION_KEYS[char])
+            elif char == 'x':
+                self.state = States.EXAMINE
+                self.map_window.center(game.world.player.pos)
+                self.map_window.draw_cursor_at_center()
+                self.examine_pos(game.world.player.pos)
+            elif char == '.':
+                return True
+            elif key.vk == tcod.KEY_ESCAPE:
+                result = menu("Escape menu", ['Resume', 'Quit'], 24)
+                if result == 1:
+                    game.alive = False
+            elif key.vk in DIRECTION_KEYS:
+                return game.attempt_player_move(DIRECTION_KEYS[key.vk])
+        elif self.state == States.EXAMINE:
+            if char in DIRECTION_KEYS:
+                self.map_window.move(DIRECTION_KEYS[char])
+                self.map_window.redraw_level(self.memory, self.vision)
+                self.map_window.draw_cursor_at_center()
+                self.examine_pos(self.map_window.center_pos)
+            elif key.vk == tcod.KEY_ESCAPE:
+                self.state = States.DEFAULT
+                self.map_window.center(game.world.player.pos)
+                self.map_window.redraw_level(self.memory, self.vision)
+                self.examine_window.clear()
 
     def examine_pos(self, pos):
         memory = self.memory.get(pos, None)
