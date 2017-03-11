@@ -398,6 +398,35 @@ class UI(object):
         self.messages_window.message(message)
 
 
+def yes_no_menu(question):
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+    width = SCREEN_HEIGHT // 2
+    # calculate total height for the header (after auto-wrap) and one line per
+    # option
+    text = question + " (y/n)"
+    height = tcod.console_get_height_rect(0, 0, 0, width,
+                                          SCREEN_HEIGHT, text)
+    # create an off-screen console that represents our window
+    window = tcod.console_new(width, height)
+
+    tcod.console_set_default_foreground(window, tcod.white)
+    tcod.console_print_rect(window, 0, 0, width, height, text)
+
+    # blit the contents of "window" to the root console
+    x = SCREEN_WIDTH // 2 - width // 2
+    y = SCREEN_HEIGHT // 2 - height // 2
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+
+    # present the root console to the player and wait for a key-press
+    tcod.console_flush()
+    tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
+
+    # special case: changing to/from fullscreen
+    if key.vk == tcod.KEY_F11:
+        tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+    return chr(key.c) == 'y'
+
 def menu(header, options, width, highlighted=[]):
     """Basic, general-purpose menu.
     Allows the user to choose from up to 26 text options."""
