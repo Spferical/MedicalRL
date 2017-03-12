@@ -507,7 +507,7 @@ class Cough(Condition):
     def on_interact(self, obj, time):
         if obj.interaction == Interactions.EAT:
             if random() < self.prob and 'severe' in self.details:
-                message("You cough and spit out your food")
+                self.body.message("You cough and spit out your food")
                 return False
         return True
 
@@ -649,14 +649,48 @@ class Pneumonia(Condition):
 class Dengue(Condition):
 
     def on_start(self):
-        self.prob = 0.2
+        self.prob = 0.05
         self.body.ss('bleeding', True)
         self.body.sc('dengue_joint_pains', JointPains(), {})
         self.body.sc('dengue_fever', Fever(), {})
         self.body.sc('dengue_vomit', Vomiting(), {})
 
     def on_progression(self, time):
+        if time > 200 and random() < self.prob:
+            if random() < 0.5:
+                self.body.message(
+                    "You notice a strange red rash covering your torso")
+            else:
+                self.body.message(
+                    "Pain wracks your abdomen")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
         pass
+
+
+class SleepingSickness(Condition):
+
+    def on_start(self):
+        print("Sleeping sickness")
+        self.prob = 0.05
+        self.body.sc('ss_joint_pains', JointPains(), {'duration': 200})
+        self.body.sc('ss_fever', Fever(), {'duration': 200})
+        self.body.sc('ss_headache', Headache(), {'duration': 200})
+        self.body.sc('ss_vomit', Vomiting(), {'duration': 200})
+
+    def on_progression(self, time):
+        if time < 200:
+            if random() < self.prob:
+                self.body.message(
+                    "You notice that the lymph nodes on your neck are enlarged")
+        else:
+            self.body.sc('ss_shaking', Shaking(), {})
+            if random() < self.prob:
+                if random() < 0.5:
+                    self.message('You feel confused')
 
     def on_interact(self, obj, time):
         return True
@@ -679,7 +713,8 @@ class Insomnia(Condition):
 
 diseases = [
     Pneumonia(),
-    Dengue()
+    Dengue(),
+    SleepingSickness()
 ]
 
 preexisting_conditions = {
