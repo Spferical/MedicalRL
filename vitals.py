@@ -216,7 +216,7 @@ class Body(object):
                 return -1
         else:
             if (obj.interaction == Interactions.CURE_TB and
-                not isinstance(self.conditions['disease'], Tuberculosis)) or \
+                not isinstance(self.conditions['disease'], TB)) or \
                 (obj.interaction == Interactions.CURE_PERTUSSIS and
                  not isinstance(self.conditions['disease'], Pertussis)) or \
                 (obj.interaction == Interactions.CURE_PNEUMONIA and
