@@ -7,7 +7,6 @@ import fov
 from mob import MobState
 import path
 import world
-import vitals
 
 
 class Game(object):
@@ -136,6 +135,10 @@ class Game(object):
         elif obj.interaction == world.Interactions.SLEEP:
             if ui.yes_no_menu("Sleep in the bed?") is True:
                 action = True
+        elif obj.interaction == world.Interactions.INHALER:
+            self.ui.messages_window.message(
+                "You take a puff from the " + obj.name + ".")
+            action = True
         if action:
             t = self.world.player.body.on_interact(obj)
             if t != -1:

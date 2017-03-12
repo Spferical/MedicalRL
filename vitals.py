@@ -139,7 +139,7 @@ class Body(object):
         self.handle_nutrition()
         self.handle_blood_sugar()
 
-        for condition in self.conditions.values():
+        for condition in list(self.conditions.values()):
             condition.on_progression(self.turn_number - condition.start_time)
 
         for name, condition in self.conditions.items():
@@ -329,6 +329,7 @@ class Condition(object):
         self.body = body
         self.start_time = time
         self.details = details
+        self.over = False
 
     def on_start(self):
         pass
@@ -343,7 +344,7 @@ class Condition(object):
         pass
 
     def is_over(self, time):
-        return time > self.details['duration'] \
+        return self.over or time > self.details['duration'] \
             if 'duration' in self.details else False
 
 
@@ -677,11 +678,50 @@ class Insomnia(Condition):
                 return False
         return True
 
+
 diseases = [
     Pneumonia(),
     Dengue()
 ]
 
+
+class Asthma(Condition):
+    def on_start(self):
+        self.prob = 0.005
+
+    def on_progression(self, time):
+        if random() < self.prob and not self.body.hs('sleeping'):
+            self.body.sc("asthma_attack", AsthmaAttack())
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
+class AsthmaAttack(Condition):
+    def on_start(self):
+        self.body.message("Your chest tightens. You can't breathe!")
+        self.prob = 0.1
+        self.body.sc('asthma_cough', Cough(), {})
+
+    def on_progression(self, time):
+        if time > 5 and random() < self.prob:
+            self.body.message("You wheeze. You need an inhaler!")
+        self.body.ss('fatigue', self.body.gs('fatigue') * 1.05)
+
+    def on_interact(self, obj, time):
+        if obj.interaction == Interactions.INHALER:
+            self.over = True
+            self.body.gc('asthma_cough').over = True
+        return True
+
+    def on_completion(self):
+        self.body.message("You can breathe again.")
+
+
 preexisting_conditions = {
     'insomnia': Insomnia,
+    'asthma': Asthma,
 }

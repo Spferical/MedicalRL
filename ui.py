@@ -404,8 +404,9 @@ class UI(object):
         self.vision.remove(event.info.pos)
         self.draw_tile(event.info.pos)
 
-    def handle_message(self, message):
-        self.messages_window.message(message.info)
+    def handle_message(self, event):
+        message, color = event.info
+        self.messages_window.message(message, color)
 
 
 def yes_no_menu(question):
@@ -547,10 +548,14 @@ def handle_main_menu():
 
 
 def ask_player_for_preexisting_conditions():
-    return {x: vitals.preexisting_conditions[x]()
-            for x in choice_menu(
+    choices = choice_menu(
                 'Choose some preexisting conditions for maximum fun...',
-                [name for name in vitals.preexisting_conditions.keys()])}
+                [name for name in vitals.preexisting_conditions.keys()])
+    if choices is None:
+        return None
+    else:
+        return {x: vitals.preexisting_conditions[x]()
+                for x in choices}
 
 
 def create_drawable_from_json(info):

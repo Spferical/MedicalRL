@@ -88,6 +88,12 @@
             "food_info": {"nutrition": 100, "low_carb": true},
             "consumed_on_use": true
         },
+        "inhaler": {
+            "char": "!",
+            "fg_color": "light_blue",
+            "interaction": "INHALER",
+            "consumed_on_use": false
+        },
         "cabinet": {
             "char": "=",
             "fg_color": "sepia",

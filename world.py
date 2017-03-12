@@ -47,6 +47,7 @@ class Interactions(Enum):
     EAT = 3
     OPEN_CONTAINER = 4
     SLEEP = 5
+    INHALER = 6
 
 
 class Object(object):
@@ -372,7 +373,7 @@ def try_to_dig_hospital_room(level, entrance, direction):
             y = random.randint(rect.top, rect.bottom)
             pos = Pos(x, y)
             items = ("apple", "banana", "peas", "hospital mush", "peanuts",
-                     "almonds", "pregnancy test", "cabinet")
+                     "almonds", "pregnancy test", "cabinet", "inhaler")
             if not level.get_object(pos):
                 name = random.choice(items)
                 item = create_object(pos, name)
