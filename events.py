@@ -1,4 +1,5 @@
 from enum import Enum
+import tcod
 
 
 class EventType(Enum):
@@ -53,8 +54,9 @@ class EventHandler(object):
                 return True
         return False
 
+
+def message(message, color=tcod.white):
+    events.send(Event(EventType.MESSAGE, (message, color)))
+
+
 events = EventHandler()
-
-
-def message(message):
-    events.send(Event(EventType.MESSAGE, message))
