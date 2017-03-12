@@ -398,6 +398,9 @@ class UI(object):
                 and self.state == States.DEFAULT:
             self.map_window.center(event.info.mob.pos)
             self.map_window.redraw_level(self.memory, self.vision)
+            if memory and memory.item:
+                self.messages_window.message(
+                    "You see a " + memory.item.name + '.')
 
     def draw_tile(self, pos):
         self.map_window.draw_tile(pos, self.memory, self.vision)
