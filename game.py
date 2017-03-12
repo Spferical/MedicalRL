@@ -52,6 +52,8 @@ class Game(object):
                 self.update_mob(mob, level)
         for i in range(self.accum):
             self.world.player.body.on_tick()
+        if self.world.player.body.hs('sleeping'):
+            del self.world.player.body.stats['sleeping']
         self.accum = 1
 
     def update_mob(self, mob, level):

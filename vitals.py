@@ -62,6 +62,9 @@ class Body(object):
     def gs(self, stat_name):
         return self.stats.get(stat_name, None)
 
+    def hs(self, stat_name):
+        return stat_name in self.stats
+
     def ss(self, stat_name, value):
         self.stats[stat_name] = value
 
@@ -124,7 +127,8 @@ class Body(object):
 
     def on_tick(self):
         ''' Called every action in game '''
-        self.handle_fatigue()
+        if not self.hs('sleeping'):
+            self.handle_fatigue()
         self.handle_nutrition()
         self.handle_blood_sugar()
 
@@ -156,7 +160,17 @@ class Body(object):
         elif obj.interaction == Interactions.EAT:
             action_time = self.const('EAT_TIME')
         elif obj.interaction == Interactions.SLEEP:
-            pass
+            noise = random() - 0.5
+            sleep_time = max(min((self.gs('fatigue') /
+                                  self.const('MAX_FATIGUE') + noise), 1.0)
+                             * self.const('MAX_SLEEP_TIME'), 0)
+            delta = (self.gs('fatigue') - self.const('BASE_FATIGUE')) * noise
+            new_fatigue = max(self.gs('fatigue') - delta,
+                              self.const('BASE_FATIGUE'))
+            print("new fatigue: {}".format(new_fatigue))
+            self.ss('sleeping', True)
+            self.ss('fatigue', new_fatigue)
+            action_time = sleep_time
 
         for name, condition in self.conditions.items():
             can_do_it = condition.on_interact(
@@ -300,20 +314,20 @@ class BlurryVision(Condition):
     prob = 0.3
 
     def on_start(self):
-        self.message("Everything looks hazy")
+        self.body.message("Everything looks hazy")
 
     def on_progression(self, time):
         if random() < self.prob:
-            self.message("You can barely see anything")
+            self.body.message("You can barely see anything")
 
     def on_interact(self, obj, time):
         if random() < self.prob:
-            self.message("You can't see what you're doing")
+            self.body.message("You can't see what you're doing")
             return False
         return True
 
     def on_completion(self):
-        self.message("Things don't look as blurry anymore")
+        self.body.message("Things don't look as blurry anymore")
 
     def is_over(self, time):
         return time > self.details['duration']
