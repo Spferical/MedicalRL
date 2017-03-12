@@ -279,9 +279,8 @@ class Body(object):
                 random() < self.const('BLOOD_SUGAR_SYMPTOM_PROB'):
             symptoms = [('blurry_vision', BlurryVision(), {'duration': 20}),
                         ('tachycardia', Tachycardia(), {'duration': 5}),
-                        'anxiety',
-                        'irritability',
-                        'headache',
+                        ('anxiety', Anxiety(), {'duration': 30}),
+                        ('headache', Headache(), {'duration': 25}),
                         'shaking',
                         'dizziness',
                         'focus_issues']
@@ -353,6 +352,60 @@ class Tachycardia(Condition):
 
     def on_completion(self):
         pass
+
+    def is_over(self, time):
+        return time > self.details['duration']
+
+
+class Anxiety(Condition):
+
+    prob = 0.2
+
+    def on_start(self):
+        self.body.message("You feel anxious")
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            self.body.message("You feel really nervous")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            self.body.message("You are too anxious to do anything")
+            return False
+        return True
+
+    def on_completion(self):
+        self.body.message("You don't feel as anxious anymore")
+
+    def is_over(self, time):
+        return time > self.details['duration']
+
+
+class Headache(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.prob = 0.7
+            self.body.message('You have an intense migraine')
+        else:
+            self.prob = 0.2
+            self.body.message('You have a headache')
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("The lights hurt")
+            else:
+                self.body.message("Your head hurts")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            self.body.message("You can't focus on anything")
+            return False
+        return True
+
+    def on_completion(self):
+        self.body.message("You feel your headache pass")
 
     def is_over(self, time):
         return time > self.details['duration']
