@@ -33,7 +33,7 @@ class Body(object):
 
             'INJURY_MOD': 10,
             'OPEN_DOOR_TIME': 3,
-            'EAT_TIME': 20,
+            'EAT_TIME': 5,
 
             "FASTING_BLOOD_SUGAR": 85,
             "HIGH_CARB_SPIKE": 2.0,
@@ -156,10 +156,12 @@ class Body(object):
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
 
+        print("That action took {} turns".format(time))
         return time
 
     def on_eat(self, food):
         ''' Called upon ingesting food (includes nutrition calculations) '''
+        print("Eating banana")
         new_nutrition = food['nutrition']
         self.ss('nutrition', self.gs('nutrition') + new_nutrition)
         current_blood_sugar = self.gs('blood_sugar')
@@ -185,7 +187,6 @@ class Body(object):
                         self.turn_number))
 
         events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
-
 
     def handle_fatigue(self):
         if self.gs('fatigue') > self.const('MAX_FATIGUE'):
