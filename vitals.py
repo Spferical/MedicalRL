@@ -14,15 +14,15 @@ class Body(object):
         self.constants = {
             'BASE_FATIGUE': 10,
             'MAX_FATIGUE': 100,
-            'FATIGUE_RATE': 1.006,
+            'FATIGUE_RATE': 1.003,
             'LIGHT_FATIGUE': 20,
             'MEDIUM_FATIGUE': 40,
             'HEAVY_FATIGUE': 60,
             'CRITICAL_FATIGUE': 70,
             'FATIGUE_MESSAGE_PROB': 0.05,
 
-            'MAX_NUTRITION': 1000,
-            'BASE_NUTRITION': 900,
+            'MAX_NUTRITION': 2000,
+            'BASE_NUTRITION': 1900,
             'HUNGER_PENALTY': 50,
             'LIGHT_HUNGER': 0.8,
             'MEDIUM_HUNGER': 0.7,
