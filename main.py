@@ -8,8 +8,12 @@ def main():
     while True:
         choice = ui.handle_main_menu()
         if choice == ui.MainMenuChoice.PLAY:
+            preexisting_conditions = ui.ask_player_for_preexisting_conditions()
             game = Game()
-            game.run()
+            game.run(
+                character_info={'ADDITONAL_FATIGUE': [],
+                                'PREEXISTING_CONDITIONS':
+                                preexisting_conditions})
         else:
             break
 
