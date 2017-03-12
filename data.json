@@ -50,35 +50,35 @@
             "char": "(",
             "fg_color": "yellow",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100, "high_carb": true},
+            "food_info": {"nutrition": 140, "high_carb": true},
             "consumed_on_use": true
         },
         "apple": {
             "char": ",",
             "fg_color": "red",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100, "medium_carb": true},
+            "food_info": {"nutrition": 120, "medium_carb": true},
             "consumed_on_use": true
         },
         "peas": {
             "char": ";",
             "fg_color": "green",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100, "medium_carb": true},
+            "food_info": {"nutrition": 180, "medium_carb": true},
             "consumed_on_use": true
         },
         "hospital mush": {
             "char": ",",
             "fg_color": "sepia",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100, "medium_carb": true},
+            "food_info": {"nutrition": 200, "medium_carb": true},
             "consumed_on_use": true
         },
         "peanuts": {
             "char": "\"",
             "fg_color": "sepia",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100, "medium_carb": true},
+            "food_info": {"nutrition": 150, "medium_carb": true},
             "consumed_on_use": true
         },
         "almonds": {
