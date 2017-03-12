@@ -44,13 +44,14 @@ class Interactions(Enum):
     NONE = 0
     OPEN_DOOR = 1
     PREGNANCY_TEST = 2
+    EAT = 3
 
 
 class Object(object):
 
     def __init__(self, pos, name, passable=True, opaque=False,
                  interaction=Interactions.NONE, pickup=False,
-                 consumed_on_use=False):
+                 consumed_on_use=False, food_info=None):
         """
         pos: a tuple (x, y)
         passable: whether the player can move into the same square as this item
@@ -64,8 +65,8 @@ class Object(object):
         self.interaction = interaction
         self.pickup = pickup
         self.consumed_on_use = consumed_on_use
-        events.events.send(events.Event(events.EventType.BIRTH,
-                                        self))
+        self.food_info = food_info
+        events.events.send(events.Event(events.EventType.BIRTH, self))
 
 
 class Level(object):
@@ -344,7 +345,8 @@ def create_object(pos, name):
                   getattr(Interactions,
                           json.get("interaction", default['interaction'])),
                   json.get("pickup", default['pickup']),
-                  json.get("consumed_on_use", default['consumed_on_use']))
+                  json.get("consumed_on_use", default['consumed_on_use']),
+                  json.get("food_info", default['food_info']))
 
 
 def try_to_dig_hospital_room(level, entrance, direction):
@@ -367,9 +369,8 @@ def try_to_dig_hospital_room(level, entrance, direction):
             y = random.randint(rect.top, rect.bottom)
             pos = Pos(x, y)
             if not level.get_object(pos):
-                item = Object(pos, "pregnancy test", pickup=True,
-                              interaction=Interactions.PREGNANCY_TEST,
-                              consumed_on_use=True)
+                item = create_object(pos, random.choice(
+                    ("banana", "pregnancy test")))
                 level.objects[pos] = item
 
 

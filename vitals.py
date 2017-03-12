@@ -1,6 +1,7 @@
 from events import events, message, Event, EventType
 from random import random, choice
 from collections import namedtuple
+from world import Interactions
 
 blood_sugar_spike = namedtuple('blood_sugar_spike',
                                ['current_blood_sugar',
@@ -45,10 +46,6 @@ class Body(object):
             'BLOOD_SUGAR_SYMPTOM_PROB': 0.1
         }
 
-        self.nutrition_lookup_table = {
-            'coffee_food': {'nutrition': 50},
-        }
-
         self.conditions = {}
         self.stats = {}
         self.inventory = []
@@ -56,7 +53,7 @@ class Body(object):
         self.player = player
 
     def gs(self, stat_name):
-        return self.stats[stat_name] if stat_name in self.stats else None
+        return self.stats.get(stat_name, None)
 
     def ss(self, stat_name, value):
         self.stats[stat_name] = value
@@ -68,8 +65,7 @@ class Body(object):
         return [obj for obj in self.inventory if obj.name == obj_name]
 
     def gc(self, condition_name):
-        return self.conditions[condition_name] if condition_name in self.conditions \
-            else None
+        return self.conditions.get(condition_name, None)
 
     def hc(self, condition_name):
         return condition_name in self.conditions
@@ -136,12 +132,13 @@ class Body(object):
                            if not v.is_over(self.turn_number - v.start_time)}
 
         self.turn_number += 1
+        events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
 
-    def on_interact(self, obj):
-        ''' Called upon interacting with objects '''
+    def get_interaction_time(self, obj):
+        ''' Returns the time that it takes the player to interact with obj '''
         action_time = 1
         k = 1
-        if obj.name == 'closed door':
+        if obj.interaction == Interactions.OPEN_DOOR:
             action_time = self.const('OPEN_DOOR_TIME')
             leg_injury = self.gc('leg_injury')
             arm_injury = self.gc('arm_injury')
@@ -149,11 +146,8 @@ class Body(object):
             arm_injury = arm_injury if arm_injury != None else 0
 
             k += (leg_injury + arm_injury) * self.const('INJURY_MOD')
-        elif obj.name.contains('food'):
-            new_nutrition = self.nutrition_lookup_table[obj.name]["nutrition"]
-            self.ss('nutrition', self.gs('nutrition') + new_nutrition)
-            self.on_eat(self.nutrition_lookup_table[obj.name])
-            action_time = self.const['EAT_TIME']
+        elif obj.interaction == Interactions.EAT:
+            action_time = self.const('EAT_TIME')
 
         for name, condition in self.conditions.items():
             condition.on_interact(condition,
@@ -162,13 +156,12 @@ class Body(object):
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
 
-        events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
-
         return time
 
     def on_eat(self, food):
-        ''' Called upon ingesting food (do not include nutrition
-        calculations here) '''
+        ''' Called upon ingesting food (includes nutrition calculations) '''
+        new_nutrition = food['nutrition']
+        self.ss('nutrition', self.gs('nutrition') + new_nutrition)
         current_blood_sugar = self.gs('blood_sugar')
         spike = lambda multiplier: min(current_blood_sugar * multiplier,
                                        self.const('MAX_NATURAL_BLOOD_SUGAR'))
@@ -190,6 +183,9 @@ class Body(object):
                         current_blood_sugar,
                         spike(self.const('LOW_CARB_SPIKE')),
                         self.turn_number))
+
+        events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
+
 
     def handle_fatigue(self):
         if self.gs('fatigue') > self.const('MAX_FATIGUE'):

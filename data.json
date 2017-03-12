@@ -17,8 +17,9 @@
             "passable": true,
             "interaction": "NONE",
             "consumed_on_use": false,
-            "pickup": false,
-            "opaque": false
+            "pickup": true,
+            "opaque": false,
+            "food_info": {"nutrition": 0}
         },
         "bed": {
             "char": "=",
@@ -42,6 +43,13 @@
             "char": "'",
             "fg_color": "pink",
             "interaction": "PREGNANCY_TEST"
+        },
+        "banana": {
+            "char": "(",
+            "fg_color": "yellow",
+            "interaction": "EAT",
+            "food_info": {"nutrition": 100},
+            "consumed_on_use": true
         }
     }
 }

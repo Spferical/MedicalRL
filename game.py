@@ -91,7 +91,7 @@ class Game(object):
         """
         Returns whether an action took place.
         """
-        self.accum += self.world.player.body.on_interact(obj)
+        self.accum += self.world.player.body.get_interaction_time(obj)
         if obj.interaction == world.Interactions.OPEN_DOOR:
             # the object is a closed door
             # replace it with an open door
@@ -104,10 +104,15 @@ class Game(object):
                 "You perform a pregnancy test on yourself...")
             if random.random() < 0.01:
                 self.ui.messages_window.message(
-                    "You are pregnant!")
+                    "You are pregnant!", tcod.pink)
             else:
                 self.ui.messages_window.message(
-                    "You are not pregnant.")
+                    "You are not pregnant.", tcod.pink)
+            return True
+        elif obj.interaction == world.Interactions.EAT:
+            self.world.player.body.on_eat(obj.food_info)
+            self.ui.messages_window.message(
+                    "You eat the " + obj.name + ".", tcod.light_blue)
             return True
 
     def attempt_player_move(self, direction):

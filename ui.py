@@ -285,9 +285,10 @@ class UI(object):
                                  [item.name for item in inventory], 24)
                     if index is not None and index != 'escape':
                         item = inventory[index]
-                        game.interact_with_object(item)
+                        turn_used = game.interact_with_object(item)
                         if item.consumed_on_use:
                             inventory.remove(item)
+                        return turn_used
                 else:
                     self.messages_window.message("You have no items.")
             elif char == 'g':
