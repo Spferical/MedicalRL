@@ -91,14 +91,14 @@ class Game(object):
         """
         Returns whether an action took place.
         """
-        self.accum += self.world.player.body.get_interaction_time(obj)
+        action = False
         if obj.interaction == world.Interactions.OPEN_DOOR:
             # the object is a closed door
             # replace it with an open door
             self.player_level.objects[obj.pos] = \
                 world.create_object(obj.pos, "open door")
             self.update_fov()
-            return True
+            action = True
         elif obj.interaction == world.Interactions.OPEN_CONTAINER:
             if not obj.contents:
                 self.ui.messages_window.message(
@@ -113,6 +113,7 @@ class Game(object):
                 self.ui.messages_window.message(
                     "You take the " + item.name
                     + " out of the " + obj.name + ".")
+                action = True
         elif obj.interaction == world.Interactions.PREGNANCY_TEST:
             self.ui.messages_window.message(
                 "You perform a pregnancy test on yourself...")
@@ -122,16 +123,20 @@ class Game(object):
             else:
                 self.ui.messages_window.message(
                     "You are not pregnant.", tcod.pink)
-            return True
+            action = True
         elif obj.interaction == world.Interactions.EAT:
             self.world.player.body.on_eat(obj.food_info)
             self.ui.messages_window.message(
                     "You eat the " + obj.name + ".", tcod.light_blue)
-            return True
+            action = True
         elif obj.interaction == world.Interactions.SLEEP:
             if ui.yes_no_menu("Sleep in the bed?") is True:
                 self.ui.messages_window.message(
                     "You sleep for a while.")
+                action = True
+        if action:
+            self.accum += self.world.player.body.get_interaction_time(obj)
+        return action
 
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""
