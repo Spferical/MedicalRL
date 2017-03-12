@@ -160,6 +160,11 @@ class Game(object):
             self.ui.messages_window.message(
                 "You inject the erythromycin.")
             action = True
+        elif obj.interaction == world.Interactions.READ:
+            self.ui.messages_window.message(
+                "You read the " + obj.name + ".")
+            ui.text_popup(world.get_book_text(obj.name))
+            action = True
         if action:
             t = self.world.player.body.on_interact(obj)
             if t != -1:
@@ -207,6 +212,7 @@ class Game(object):
         self.world.player.body.sc("disease",
                                   disease,
                                   {})
+        ui.do_welcome()
         while self.alive and not tcod.console_is_window_closed():
             if self.ui.handle_input(self):
                 self.update_mobs()

@@ -1,4 +1,6 @@
 import json
+import glob
+import os
 from enum import Enum
 import math
 import random
@@ -15,6 +17,16 @@ with open("data.json") as data:
     objinfo = data['objects']
     player_info = data['player']
     factions = data['factions']
+
+
+books = {}
+for book_path in glob.glob("books/*.txt"):
+    with open(book_path) as book_file:
+        books[os.path.basename(book_path[:-4])] = book_file.read()
+
+
+def get_book_text(book_name):
+    return books[book_name]
 
 
 class Tile(object):
@@ -54,6 +66,7 @@ class Interactions(Enum):
     CURE_TB = 10
     CURE_PERTUSSIS = 11
     CURE_SLEEPING_SICKNESS_2 = 12
+    READ = 13
 
 
 class Object(object):
@@ -421,6 +434,23 @@ def generate_hospital():
     while walls:
         wall, direction = walls.pop()
         try_to_dig_hospital_room(level, wall, direction)
+
+    # randomly distribute important items
+    important = ['flyer on %s' % topic for topic in
+                 ('pneumonia', 'pertussis', 'tb', 'sleeping sickness',
+                     'dengue')] + ['amoxicillin', 'dengue antiserum',
+                                   'pentamidine', 'eflornithine', 'rifampicin',
+                                   'erythromycin']
+
+    for name in important:
+        pos = Pos(
+            random.randint(0, width - 1),
+            random.randint(0, height - 1))
+        while level.is_blocked(pos) or level.get_object(pos):
+            pos = Pos(
+                random.randint(0, width - 1),
+                random.randint(0, height - 1))
+        level.objects[pos] = create_object(pos, name)
 
     # up stairs
     x, y = get_random_passable_position(level)

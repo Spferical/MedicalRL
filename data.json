@@ -112,7 +112,7 @@
             "interaction": "CURE_SLEEPING_SICKNESS_1",
             "consumed_on_use": false
         },
-        "pentamidine": {
+        "eflornithine": {
             "char": "!",
             "fg_color": "light_gray",
             "interaction": "CURE_SLEEPING_SICKNESS_2",
@@ -128,6 +128,36 @@
             "char": "!",
             "fg_color": "light_yellow",
             "interaction": "CURE_PERTUSSIS",
+            "consumed_on_use": false
+        },
+        "flyer on pneumonia": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
+            "consumed_on_use": false
+        },
+        "flyer on pertussis": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
+            "consumed_on_use": false
+        },
+        "flyer on tb": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
+            "consumed_on_use": false
+        },
+        "flyer on sleeping sickness": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
+            "consumed_on_use": false
+        },
+        "flyer on dengue": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
             "consumed_on_use": false
         },
         "cabinet": {

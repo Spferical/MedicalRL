@@ -10,6 +10,18 @@ import vitals
 import world
 
 
+WELCOME = """
+You wake up alone in a hospital. You do not feel well.
+
+Arrow keys, numpad, or extended vi keys to move around.
+Pick things up with "g" or ",".
+Press "i" to see and interact with items in your inventory.
+Walk into things to use them.
+
+Good luck.
+"""
+
+
 def init_tcod():
     tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT,
                            bytes(GAME_NAME, 'utf-8'), False)
@@ -582,6 +594,38 @@ def draw_cell(con, pos, char, fg, bg=None):
         tcod.console_set_char_background(con, x, y, bg)
     tcod.console_set_char_foreground(con, x, y, fg)
     tcod.console_set_char(con, x, y, char)
+
+
+def text_popup(text):
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+    width = SCREEN_WIDTH // 2
+    # calculate total height for the header (after auto-wrap) and one line per
+    # option
+    height = tcod.console_get_height_rect(0, 0, 0, width,
+                                          SCREEN_HEIGHT, text)
+    # create an off-screen console that represents our window
+    window = tcod.console_new(width, height)
+
+    tcod.console_set_default_foreground(window, tcod.white)
+    tcod.console_print_rect(window, 1, 0, width - 2, height, text)
+
+    # blit the contents of "window" to the root console
+    x = SCREEN_WIDTH // 2 - width // 2
+    y = SCREEN_HEIGHT // 2 - height // 2
+    tcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.9)
+
+    # present the root console to the player and wait for a key-press
+    tcod.console_flush()
+    tcod.sys_wait_for_event(tcod.EVENT_KEY_PRESS, key, mouse, True)
+
+    # special case: changing to/from fullscreen
+    if key.vk == tcod.KEY_F11:
+        tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+
+def do_welcome():
+    text_popup(WELCOME)
 
 
 drawables = {
