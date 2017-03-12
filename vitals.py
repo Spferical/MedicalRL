@@ -214,6 +214,24 @@ class Body(object):
             else:
                 self.message("You can't sleep.")
                 return -1
+        else:
+            if (obj.interaction == Interactions.CURE_TB and
+                not isinstance(self.conditions['disease'], Tuberculosis)) or \
+                (obj.interaction == Interactions.CURE_PERTUSSIS and
+                 not isinstance(self.conditions['disease'], Pertussis)) or \
+                (obj.interaction == Interactions.CURE_PNEUMONIA and
+                 not isinstance(self.conditions['disease'], Pneumonia)) or \
+                (obj.interaction == Interactions.CURE_SLEEPING_SICKNESS_1 and
+                 not isinstance(self.conditions['disease'], SleepingSickness)) or \
+                (obj.interaction == Interactions.CURE_SLEEPING_SICKNESS_2 and
+                    not isinstance(self.conditions['disease'], SleepingSickness) or
+                 (obj.interaction == Interactions.CURE_DENGUE and
+                    not isinstance(self.conditions['disease'], Dengue))):
+                self.message('The game developers could\'t think of a good way '
+                             'to discourage players from taking every pill '
+                             'they come across. You took the wrong pill. '
+                             'So rocks fall and you die.', tcod.red)
+                events.send(Event(EventType.GAME_OVER, None))
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
