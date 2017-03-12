@@ -114,7 +114,7 @@ class Level(object):
 
     def is_opaque(self, pos):
         return self[pos].opaque \
-                or pos in self.objects and self.objects[pos].opaque
+            or pos in self.objects and self.objects[pos].opaque
 
     def __getitem__(self, key):
         x, y = key
@@ -237,6 +237,7 @@ def undig(level, x, y):
 
 
 class Rect(object):
+
     def __init__(self, left, top, right, bottom):
         self.left = left
         self.top = top
@@ -246,7 +247,7 @@ class Rect(object):
 
 def rect_in_level(level, rect):
     return (rect.left, rect.top) in level \
-            and (rect.right, rect.bottom) in level
+        and (rect.right, rect.bottom) in level
 
 
 def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None,
@@ -259,8 +260,8 @@ def try_to_dig_room(level, entrance, direction, dim1=None, dim2=None,
     perp2 = rotated270(direction)
     corner1 = add(add(entrance, direction), mul(perp1, dim2 // 2))
     corner2 = add(
-            add(entrance, mul(direction, dim1)),
-            mul(perp2, math.ceil(dim2 / 2)))
+        add(entrance, mul(direction, dim1)),
+        mul(perp2, math.ceil(dim2 / 2)))
     x1 = min(corner1[0], corner2[0])
     y1 = min(corner1[1], corner2[1])
     x2 = max(corner1[0], corner2[0])
@@ -376,8 +377,9 @@ def try_to_dig_hospital_room(level, entrance, direction):
             pos = Pos(x, y)
             items = ("apple", "banana", "peas", "hospital mush", "peanuts",
                      "almonds", "pregnancy test", "cabinet", "inhaler")
+            weights = (30, 30, 40, 30, 50, 45, 0.1, 150, 40)
             if not level.get_object(pos):
-                name = random.choice(items)
+                name = random.choices(items, weights=weights)[0]
                 item = create_object(pos, name)
                 if name == 'cabinet':
                     for j in range(random.randint(0, 3)):
