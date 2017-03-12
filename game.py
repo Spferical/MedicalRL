@@ -1,7 +1,7 @@
 import random
 import tcod
 import ui
-from constants import FOV_RADIUS
+from constants import FOV_RADIUS, MAX_INVENTORY_SIZE
 import events
 import fov
 from mob import MobState
@@ -116,6 +116,13 @@ class Game(object):
                 self.ui.messages_window.message(
                     "You take the " + item.name
                     + " out of the " + obj.name + ".")
+                if len(self.world.player.body.inventory) > MAX_INVENTORY_SIZE:
+                    drop = self.world.player.body.inventory.pop(0)
+                    self.ui.messages_window.message(
+                        "You drop your " + drop.name
+                        + " into the " + obj.name + ".", tcod.purple)
+                    obj.contents.append(drop)
+
                 action = True
         elif obj.interaction == world.Interactions.PREGNANCY_TEST:
             self.ui.messages_window.message(

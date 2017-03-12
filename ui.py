@@ -1,7 +1,7 @@
 from enum import Enum
 import tcod
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DIRECTION_KEYS, DEBUG, \
-    GAME_NAME
+    GAME_NAME, MAX_INVENTORY_SIZE
 import events
 from mob import MobState
 from util import Pos
@@ -313,10 +313,19 @@ class UI(object):
                 obj = game.player_level.get_object(game.world.player.pos)
                 if obj is not None and obj.pickup:
                     # try to pick it up
+                    inventory = game.world.player.body.inventory
                     game.player_level.pop_object(game.world.player.pos)
-                    game.world.player.body.inventory.append(obj)
+                    inventory.append(obj)
                     self.messages_window.message("You pick up the " + obj.name
                                                  + '.')
+                    if len(inventory) > MAX_INVENTORY_SIZE:
+                        drop = inventory.pop(0)
+                        self.messages_window.message(
+                            "You drop your " + drop.name + '.', tcod.purple)
+                        game.player_level.objects[game.world.player.pos] = drop
+                        drop.pos = game.world.player.pos
+                        events.events.send(
+                            events.Event(events.EventType.BIRTH, drop))
                 else:
                     self.messages_window.message("There are no items here.")
         elif self.state == States.EXAMINE:
