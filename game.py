@@ -175,9 +175,11 @@ class Game(object):
             return True
 
     def run(self, character_info={'ADDITONAL_FATIGUE': [],
-                                  'PREEXISTING_CONDITIONS': []}):
-
+                                  'PREEXISTING_CONDITIONS': {}}):
         self.world.player.body.on_game_start(character_info)
+        self.world.player.body.sc("disease",
+                                  character_info['DISEASE'],
+                                  {})
         while self.alive and not tcod.console_is_window_closed():
             if self.ui.handle_input(self):
                 self.update_mobs()

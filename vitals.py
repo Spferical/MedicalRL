@@ -483,24 +483,32 @@ class Dizziness(Condition):
         self.body.message("You feel less dizzy")
 
 
-class Coughing(Condition):
+class Cough(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.4
-        else:
             self.prob = 0.2
+            self.fatigue_prob = 0.02
+        else:
+            self.prob = 0.1
+            self.fatigue_prob = 0.01
 
     def on_progression(self, time):
-        if random() < self.prob:
+        if random() < self.prob and not self.body.hs('sleeping'):
             if 'severe' in self.details:
                 self.body.message("You cough violently")
-                self.ss('fatigue', self.gs('fatigue') * 1.08)
+                if random() < self.fatigue_prob:
+                    self.body.ss('fatigue', self.body.gs('fatigue') * 1.08)
             else:
                 self.body.message("You cough")
-                self.ss('fatigue', self.gs('fatigue') * 1.02)
+                if random() < self.fatigue_prob:
+                    self.body.ss('fatigue', self.body.gs('fatigue') * 1.02)
 
     def on_interact(self, obj, time):
+        if obj.interaction == Interactions.EAT:
+            if random() < self.prob and 'severe' in self.details:
+                print("You cough and spit out your food")
+                return False
         return True
 
     def on_completion(self):
@@ -512,18 +520,18 @@ class Fever(Condition):
     def on_start(self):
         if 'severe' in self.details:
             self.body.message("You feel very ill")
-            self.prob = 0.4
+            self.prob = 0.05
         else:
             self.body.message("You feel ill")
-            self.prob = 0.2
+            self.prob = 0.02
 
     def on_progression(self, time):
-        if random() < self.prob:
+        if random() < self.prob and not self.body.hs('sleeping'):
             if random() < 0.5:
                 self.body.message("You have a strong feeling of malaise")
             else:
                 self.body.message("Your body is burning up")
-            self.ss('fatigue', self.gs('fatigue') * 1.01)
+            self.body.ss('fatigue', self.body.gs('fatigue') * 1.01)
 
     def on_interact(self, obj, time):
         return True
@@ -563,8 +571,8 @@ class Pneumonia(Condition):
 
     def on_start(self):
         self.prob = 0.2
-        self.sc('pneumonia_cough', Cough(), {'severe': True})
-        self.sc('pneumonia_fever', Feber(), {})
+        self.body.sc('pneumonia_cough', Cough(), {'severe': True})
+        self.body.sc('pneumonia_fever', Fever(), {})
 
     def on_progression(self, time):
         if random() < self.prob:
@@ -575,6 +583,8 @@ class Pneumonia(Condition):
 
     def on_completion(self):
         pass
+
+# Pre-existing conditions:
 
 
 class Insomnia(Condition):
@@ -587,6 +597,9 @@ class Insomnia(Condition):
                 return False
         return True
 
+diseases = [
+    Pneumonia()
+]
 
 preexisting_conditions = {
     'insomnia': Insomnia,
