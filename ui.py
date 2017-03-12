@@ -378,9 +378,7 @@ class UI(object):
         player = event.info
         self.status_bar.update({
         })
-        ns = {
-            "pos": (str(player.pos), tcod.green, tcod.yellow)
-        }
+        ns = {}
         for st in player.body.visible:
             value = player.body.gs(st)
             if isinstance(value, float):

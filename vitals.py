@@ -223,7 +223,6 @@ class Body(object):
 
     def on_eat(self, food):
         ''' Called upon ingesting food (includes nutrition calculations) '''
-        print("Eating banana")
         new_nutrition = food['nutrition']
         self.ss('nutrition', min(self.gs('nutrition') + new_nutrition,
                                  self.const('MAX_NUTRITION')))
@@ -718,7 +717,6 @@ class SleepingSickness(Condition):
     additional_fatigue = 25
 
     def on_start(self):
-        print('sleeping sickness')
         self.prob = 0.05
         self.body.sc('ss_joint_pains', JointPains(), {'duration': 200})
         self.body.sc('ss_fever', Fever(), {'duration': 200, 'severe': True})
