@@ -277,8 +277,8 @@ class Body(object):
 
         if self.gs('blood_sugar') < self.const('LOW_BLOOD_SUGAR') and \
                 random() < self.const('BLOOD_SUGAR_SYMPTOM_PROB'):
-            symptoms = ['blurry_vision',
-                        'rapid_heartbeat',
+            symptoms = [('blurry_vision', BlurryVision(), {'duration': 20}),
+                        ('tachycardia', Tachycardia(), {'duration': 5}),
                         'anxiety',
                         'irritability',
                         'headache',
@@ -286,9 +286,8 @@ class Body(object):
                         'dizziness',
                         'focus_issues']
             symptom = choice(symptoms)
-            self.sc("blurry_vision",
-                    BlurryVision(),
-                    {"duration": 20})
+            if isinstance(symptom, Condition):
+                self.sc(symptom)
 
 
 class Condition(object):
@@ -333,6 +332,27 @@ class BlurryVision(Condition):
 
     def on_completion(self):
         self.body.message("Things don't look as blurry anymore")
+
+    def is_over(self, time):
+        return time > self.details['duration']
+
+
+class Tachycardia(Condition):
+
+    prob = 0.2
+
+    def on_start(self):
+        self.body.message("You feel your heart rapidly beating in your chest")
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            self.body.message("All you can hear is your racing heartbeat")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
 
     def is_over(self, time):
         return time > self.details['duration']
