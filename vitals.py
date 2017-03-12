@@ -648,6 +648,10 @@ class Pneumonia(Condition):
             self.body.message("You feel a sharp pain in your chest")
 
     def on_interact(self, obj, time):
+        if obj.interaction == Interactions.CURE_PNEUMONIA:
+            self.over = True
+            self.body.message("You have cured your pneumonia!", tcod.green)
+            events.send(Event(EventType.GAME_OVER, None))
         return True
 
     def on_completion(self):
@@ -704,6 +708,10 @@ class SleepingSickness(Condition):
                     self.body.ss('fatigue', self.body.gs('fatigue') * 1.1)
 
     def on_interact(self, obj, time):
+        if obj.interaction == Interactions.CURE_DENGUE:
+            self.over = True
+            self.body.message("You have cured your dengue!", tcod.green)
+            events.send(Event(EventType.GAME_OVER, None))
         return True
 
     def on_completion(self):

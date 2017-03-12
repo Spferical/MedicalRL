@@ -48,6 +48,8 @@ class Interactions(Enum):
     OPEN_CONTAINER = 4
     SLEEP = 5
     INHALER = 6
+    CURE_PNEUMONIA = 7
+    CURE_DENGUE = 8
 
 
 class Object(object):

@@ -94,6 +94,18 @@
             "interaction": "INHALER",
             "consumed_on_use": false
         },
+        "amoxicillin": {
+            "char": "!",
+            "fg_color": "light_orange",
+            "interaction": "CURE_PNEUMONIA",
+            "consumed_on_use": false
+        },
+        "dengue antiserum": {
+            "char": "!",
+            "fg_color": "light_green",
+            "interaction": "CURE_DENGUE",
+            "consumed_on_use": false
+        },
         "cabinet": {
             "char": "=",
             "fg_color": "sepia",

@@ -139,6 +139,14 @@ class Game(object):
             self.ui.messages_window.message(
                 "You take a puff from the " + obj.name + ".")
             action = True
+        elif obj.interaction == world.Interactions.CURE_PNEUMONIA:
+            self.ui.messages_window.message(
+                "You take some of the antibiotics pills.")
+            action = True
+        elif obj.interaction == world.Interactions.CURE_DENGUE:
+            self.ui.messages_window.message(
+                "You drink the antiserum.")
+            action = True
         if action:
             t = self.world.player.body.on_interact(obj)
             if t != -1:
