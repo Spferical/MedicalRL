@@ -1,5 +1,5 @@
 from events import events, message, Event, EventType
-from random import random
+from random import random, choice
 from collections import namedtuple
 
 blood_sugar_spike = namedtuple('blood_sugar_spike',
@@ -8,7 +8,7 @@ blood_sugar_spike = namedtuple('blood_sugar_spike',
                                 'start_turn'])
 
 
-class Body:
+class Body(object):
 
     def __init__(self, info, player):
         self.constants = {
@@ -74,8 +74,12 @@ class Body:
     def hc(self, condition_name):
         return condition_name in self.conditions
 
-    def sc(self, condition_name, condition_value):
-        self.inventory[condition_name] = condition_value
+    def sc(self, condition_name, condition_value, duration={}):
+        condition_value.configure(self,
+                                  self.turn_number,
+                                  duration)
+        condition_value.on_start()
+        self.conditions[condition_name] = condition_value
 
     def const(self, constant_name):
         return self.constants[constant_name]
@@ -120,6 +124,17 @@ class Body:
         self.handle_fatigue()
         self.handle_nutrition()
         self.handle_blood_sugar()
+
+        for condition in self.conditions.values():
+            condition.on_progression(self.turn_number - condition.start_time)
+
+        for name, condition in self.conditions.items():
+            if condition.is_over(self.turn_number - condition.start_time):
+                condition.on_completion()
+
+        self.conditions = {k: v for k, v in self.conditions.items()
+                           if not v.is_over(self.turn_number - v.start_time)}
+
         self.turn_number += 1
 
     def on_interact(self, obj):
@@ -139,6 +154,10 @@ class Body:
             self.ss('nutrition', self.gs('nutrition') + new_nutrition)
             self.on_eat(self.nutrition_lookup_table[obj.name])
             action_time = self.const['EAT_TIME']
+
+        for name, condition in self.conditions.items():
+            condition.on_interact(condition,
+                                  self.turn_number - condition.start_time)
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
@@ -238,3 +257,54 @@ class Body:
                         'shaking',
                         'dizziness',
                         'focus_issues']
+            symptom = choice(symptoms)
+            self.sc("blurry_vision",
+                    BlurryVision(),
+                    {"duration": 20})
+
+
+class Condition(object):
+
+    def configure(self, body, time, details):
+        self.body = body
+        self.start_time = time
+        self.details = details
+
+    def on_start(self):
+        pass
+
+    def on_progression(self, time):
+        pass
+
+    def on_interact(self, obj, time):
+        pass
+
+    def on_completion(self):
+        pass
+
+    def is_over(self):
+        pass
+
+
+class BlurryVision(Condition):
+
+    prob = 0.3
+
+    def on_start(self):
+        message("Everything looks hazy")
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            message("You can barely see anything")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            message("You can't see what you're doing")
+            return False
+        return True
+
+    def on_completion(self):
+        message("Things don't look as blurry anymore")
+
+    def is_over(self, time):
+        return time > self.details['duration']
