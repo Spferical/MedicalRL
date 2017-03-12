@@ -537,9 +537,38 @@ class Fever(Condition):
                 self.body.message("You have a strong feeling of malaise")
             else:
                 self.body.message("Your body is burning up")
-            self.ss('fatigue', self.gs('fatigue') * 1.02)
+            self.ss('fatigue', self.gs('fatigue') * 1.01)
 
     def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+    def is_over(self, time):
+        return time > self.details['duration'] \
+            if duration in self.details else False
+
+
+class Chills(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.prob = 0.6
+        else:
+            self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("You shiver")
+            else:
+                self.body.message("Your feel cold")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            self.body.message("It's too cold to do anything")
+            return False
         return True
 
     def on_completion(self):
