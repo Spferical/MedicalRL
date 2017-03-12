@@ -576,6 +576,25 @@ class Chills(Condition):
         pass
 
 
+class Sneezing(Condition):
+
+    def on_start(self):
+        self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("You sneeze")
+            else:
+                self.body.message("You sneeze loudly")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
 class Nausea(Condition):
 
     def on_start(self):
@@ -644,7 +663,7 @@ class Pneumonia(Condition):
     def on_start(self):
         self.prob = 0.2
         self.body.sc('pneumonia_cough', Cough(), {'severe': True})
-        self.body.sc('pneumonia_fever', Fever(), {})
+        self.body.sc('pneumonia_fever', Fever(), {'severe': True})
 
     def on_progression(self, time):
         if random() < self.prob:
@@ -667,7 +686,7 @@ class Dengue(Condition):
         self.prob = 0.05
         self.body.ss('bleeding', True)
         self.body.sc('dengue_joint_pains', JointPains(), {})
-        self.body.sc('dengue_fever', Fever(), {})
+        self.body.sc('dengue_fever', Fever(), {'severe': True})
         self.body.sc('dengue_vomit', Vomiting(), {})
 
     def on_progression(self, time):
@@ -692,7 +711,7 @@ class SleepingSickness(Condition):
         print('sleeping sickness')
         self.prob = 0.05
         self.body.sc('ss_joint_pains', JointPains(), {'duration': 200})
-        self.body.sc('ss_fever', Fever(), {'duration': 200})
+        self.body.sc('ss_fever', Fever(), {'duration': 200, 'severe': True})
         self.body.sc('ss_headache', Headache(), {'duration': 200})
         self.body.sc('ss_vomit', Vomiting(), {'duration': 200})
 
@@ -743,6 +762,27 @@ class TB(Condition):
         pass
 
 
+class Pertussis(Condition):
+
+    def on_start(self):
+        self.prob = 0.05
+        self.body.ss('bleeding', True)
+        self.body.sc('pertussis_fever', Fever())
+        self.body.sc('pertussis_sneezing', Sneezing(), {})
+        self.body.sc('pertussis_cough', Cough(), {'severe': True})
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("Your cough sounds dry")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
 # Pre-existing conditions:
 
 
@@ -761,7 +801,8 @@ diseases = [
     Pneumonia(),
     Dengue(),
     SleepingSickness(),
-    TB()
+    TB(),
+    Pertussis()
 ]
 
 
