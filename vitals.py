@@ -232,13 +232,13 @@ class Body(object):
             print('target blood sugar: {}'.format(target))
 
         else:
-            start_turn = self.gs('blood_sugar_spike')
+            start_turn = self.gs('blood_sugar_spike').start_turn
             if self.turn_number - start_turn > \
                     self.const('SUGAR_SPIKE_DURATION'):
                 del self.stats['blood_sugar_spike']
                 return
             target = self.gs('blood_sugar_spike').spike_blood_sugar
-            delta = noise + 4
+            delta = noise + 3
 
         if self.gs('blood_sugar') < target:
             self.ss('blood_sugar', self.gs('blood_sugar') + delta)
