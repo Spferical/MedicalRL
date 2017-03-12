@@ -400,6 +400,7 @@ class UI(object):
 
     def handle_game_over(self, event):
         self.state = States.GAME_OVER
+        self.messages_window.message("(Press escape to quit.)")
 
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
