@@ -42,7 +42,8 @@
         "pregnancy test": {
             "char": "'",
             "fg_color": "pink",
-            "interaction": "PREGNANCY_TEST"
+            "interaction": "PREGNANCY_TEST",
+            "consumed_on_use": true
         },
         "banana": {
             "char": "(",
