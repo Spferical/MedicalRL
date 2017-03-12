@@ -11,7 +11,8 @@ import world
 
 
 def init_tcod():
-    tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, b"Frogue", False)
+    tcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT,
+                           bytes(GAME_NAME, 'utf-8'), False)
     tcod.sys_set_fps(30)
 
 
