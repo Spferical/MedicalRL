@@ -281,12 +281,10 @@ class Body(object):
                         ('tachycardia', Tachycardia(), {'duration': 5}),
                         ('anxiety', Anxiety(), {'duration': 30}),
                         ('headache', Headache(), {'duration': 25}),
-                        'shaking',
-                        'dizziness',
-                        'focus_issues']
-            symptom = choice(symptoms)
-            if isinstance(symptom, Condition):
-                self.sc(symptom)
+                        ('shaking', Shaking(), {'duration': 30}),
+                        ('dizziness', Dizziness(), {'duration': 30})]
+            name, symptom, details = choice(symptoms)
+            self.sc(name, symptom, details)
 
 
 class Condition(object):
@@ -406,6 +404,62 @@ class Headache(Condition):
 
     def on_completion(self):
         self.body.message("You feel your headache pass")
+
+    def is_over(self, time):
+        return time > self.details['duration']
+
+
+class Shaking(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.prob = 0.7
+            self.body.message('You start shaking')
+        else:
+            self.prob = 0.2
+            self.body.message('You start shaking a little')
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("Your shiver and shake")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            self.body.message("Your hands are shaking too much to do anything")
+            return False
+        return True
+
+    def on_completion(self):
+        self.body.message("You feel less shaky")
+
+    def is_over(self, time):
+        return time > self.details['duration']
+
+
+class Dizziness(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.prob = 0.7
+            self.body.message('You feel very lightheaded')
+        else:
+            self.prob = 0.2
+            self.body.message('You feel dizzy')
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("Everything swims in front of your eyes")
+
+    def on_interact(self, obj, time):
+        if random() < self.prob:
+            self.body.message("You are too dizzy to do anything")
+            return False
+        return True
+
+    def on_completion(self):
+        self.body.message("You feel less dizzy")
 
     def is_over(self, time):
         return time > self.details['duration']
