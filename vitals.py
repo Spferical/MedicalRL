@@ -163,7 +163,8 @@ class Body(object):
         ''' Called upon ingesting food (includes nutrition calculations) '''
         print("Eating banana")
         new_nutrition = food['nutrition']
-        self.ss('nutrition', self.gs('nutrition') + new_nutrition)
+        self.ss('nutrition', min(self.gs('nutrition') + new_nutrition,
+                                 self.const('MAX_NUTRITION')))
         current_blood_sugar = self.gs('blood_sugar')
         spike = lambda multiplier: min(current_blood_sugar * multiplier,
                                        self.const('MAX_NATURAL_BLOOD_SUGAR'))
@@ -233,7 +234,7 @@ class Body(object):
         else:
             start_turn = self.gs('blood_sugar_spike')
             if self.turn_number - start_turn > \
-               self.const('SUGAR_SPIKE_DURATION'):
+                    self.const('SUGAR_SPIKE_DURATION'):
                 del self.stats['blood_sugar_spike']
                 return
             target = self.gs('blood_sugar_spike').spike_blood_sugar
@@ -245,7 +246,7 @@ class Body(object):
             self.ss('blood_sugar', self.gs('blood_sugar') - delta)
 
         if self.gs('blood_sugar') < self.const('LOW_BLOOD_SUGAR') and \
-           random() < self.const('BLOOD_SUGAR_SYMPTOM_PROB'):
+                random() < self.const('BLOOD_SUGAR_SYMPTOM_PROB'):
             symptoms = ['blurry_vision',
                         'rapid_heartbeat',
                         'anxiety',
