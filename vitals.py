@@ -478,8 +478,7 @@ class Dizziness(Condition):
 
     def on_progression(self, time):
         if random() < self.prob:
-            if random() < 0.5:
-                self.body.message("Everything swims in front of your eyes")
+            self.body.message("Everything swims in front of your eyes")
 
     def on_interact(self, obj, time):
         if random() < self.prob:
@@ -492,3 +491,58 @@ class Dizziness(Condition):
 
     def is_over(self, time):
         return time > self.details['duration']
+
+
+class Coughing(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.prob = 0.7
+        else:
+            self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if 'severe' in self.details:
+                self.body.message("You cough violently")
+                self.ss('fatigue', self.gs('fatigue') * 1.08)
+            else:
+                self.body.message("You cough")
+                self.ss('fatigue', self.gs('fatigue') * 1.02)
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+    def is_over(self, time):
+        return time > self.details['duration'] \
+            if duration in self.details else False
+
+
+class Fever(Condition):
+
+    def on_start(self):
+        if 'severe' in self.details:
+            self.body.message("You feel very ill")
+            self.prob = 0.7
+        else:
+            self.body.message("You feel ill")
+            self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if 'severe' in self.details:
+                self.body.message("You have a strong feeling of malaise")
+                self.ss('fatigue', self.gs('fatigue') * 1.02)
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+    def is_over(self, time):
+        return time > self.details['duration'] \
+            if duration in self.details else False
