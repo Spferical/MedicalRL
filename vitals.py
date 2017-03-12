@@ -533,9 +533,11 @@ class Fever(Condition):
 
     def on_progression(self, time):
         if random() < self.prob:
-            if 'severe' in self.details:
+            if random() < 0.5:
                 self.body.message("You have a strong feeling of malaise")
-                self.ss('fatigue', self.gs('fatigue') * 1.02)
+            else:
+                self.body.message("Your body is burning up")
+            self.ss('fatigue', self.gs('fatigue') * 1.02)
 
     def on_interact(self, obj, time):
         return True
