@@ -1,4 +1,5 @@
 from enum import Enum
+import tcod
 
 
 class EventType(Enum):
@@ -11,6 +12,7 @@ class EventType(Enum):
     BIRTH = 7
     PLAYER_STATUS_UPDATE = 8
     REMOVAL = 9
+    GAME_OVER = 10
 
 
 class MoveInfo(object):
@@ -53,8 +55,9 @@ class EventHandler(object):
                 return True
         return False
 
+
+def message(message, color=tcod.white):
+    events.send(Event(EventType.MESSAGE, (message, color)))
+
+
 events = EventHandler()
-
-
-def message(message):
-    events.send(Event(EventType.MESSAGE, message))

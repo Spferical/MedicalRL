@@ -42,6 +42,7 @@ class TileMemory(object):
 class States(Enum):
     DEFAULT = 1
     EXAMINE = 2
+    GAME_OVER = 3
 
 
 MOB_STATE_DESCRIPTIONS = {
@@ -246,6 +247,8 @@ class UI(object):
                                    self.handle_player_status_update)
         events.events.add_callback(events.EventType.REMOVAL,
                                    self.handle_removal)
+        events.events.add_callback(events.EventType.GAME_OVER,
+                                   self.handle_game_over)
         self.memory = {}
         self.vision = set()
 
@@ -262,6 +265,11 @@ class UI(object):
 
         if key.vk == tcod.KEY_F11:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+        if (self.state == States.DEFAULT or self.state == States.GAME_OVER) \
+                and key.vk == tcod.KEY_ESCAPE:
+            result = menu("Escape Menu", ['Resume', 'Quit'], 24)
+            if result == 1:
+                game.alive = False
 
         if self.state == States.DEFAULT:
             if char in DIRECTION_KEYS:
@@ -273,10 +281,6 @@ class UI(object):
                 self.examine_pos(game.world.player.pos)
             elif char == '.':
                 return True
-            elif key.vk == tcod.KEY_ESCAPE:
-                result = menu("Escape Menu", ['Resume', 'Quit'], 24)
-                if result == 1:
-                    game.alive = False
             elif key.vk in DIRECTION_KEYS:
                 return game.attempt_player_move(DIRECTION_KEYS[key.vk])
             elif char == 'i':
@@ -372,6 +376,9 @@ class UI(object):
             memory.item = None
             self.draw_tile(event.info.pos)
 
+    def handle_game_over(self, event):
+        self.state = States.GAME_OVER
+
     def handle_move(self, event):
         # remove mob from previous memory position if we saw him leave
         memory = self.memory.get(event.info.prev_pos, None)
@@ -404,8 +411,9 @@ class UI(object):
         self.vision.remove(event.info.pos)
         self.draw_tile(event.info.pos)
 
-    def handle_message(self, message):
-        self.messages_window.message(message.info)
+    def handle_message(self, event):
+        message, color = event.info
+        self.messages_window.message(message, color)
 
 
 def yes_no_menu(question):
@@ -547,10 +555,14 @@ def handle_main_menu():
 
 
 def ask_player_for_preexisting_conditions():
-    return {x: vitals.preexisting_conditions[x]()
-            for x in choice_menu(
+    choices = choice_menu(
                 'Choose some preexisting conditions for maximum fun...',
-                [name for name in vitals.preexisting_conditions.keys()])}
+                [name for name in vitals.preexisting_conditions.keys()])
+    if choices is None:
+        return None
+    else:
+        return {x: vitals.preexisting_conditions[x]()
+                for x in choices}
 
 
 def create_drawable_from_json(info):
