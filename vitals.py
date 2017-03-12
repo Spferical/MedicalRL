@@ -335,8 +335,9 @@ class Condition(object):
     def on_completion(self):
         pass
 
-    def is_over(self):
-        pass
+    def is_over(self, time):
+        return time > self.details['duration'] \
+            if 'duration' in self.details else False
 
 
 class BlurryVision(Condition):
@@ -359,9 +360,6 @@ class BlurryVision(Condition):
     def on_completion(self):
         self.body.message("Things don't look as blurry anymore")
 
-    def is_over(self, time):
-        return time > self.details['duration']
-
 
 class Tachycardia(Condition):
 
@@ -379,9 +377,6 @@ class Tachycardia(Condition):
 
     def on_completion(self):
         pass
-
-    def is_over(self, time):
-        return time > self.details['duration']
 
 
 class Anxiety(Condition):
@@ -404,15 +399,12 @@ class Anxiety(Condition):
     def on_completion(self):
         self.body.message("You don't feel as anxious anymore")
 
-    def is_over(self, time):
-        return time > self.details['duration']
-
 
 class Headache(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.7
+            self.prob = 0.4
             self.body.message('You have an intense migraine')
         else:
             self.prob = 0.2
@@ -434,15 +426,12 @@ class Headache(Condition):
     def on_completion(self):
         self.body.message("You feel your headache pass")
 
-    def is_over(self, time):
-        return time > self.details['duration']
-
 
 class Shaking(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.7
+            self.prob = 0.4
             self.body.message('You start shaking')
         else:
             self.prob = 0.2
@@ -462,15 +451,12 @@ class Shaking(Condition):
     def on_completion(self):
         self.body.message("You feel less shaky")
 
-    def is_over(self, time):
-        return time > self.details['duration']
-
 
 class Dizziness(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.7
+            self.prob = 0.4
             self.body.message('You feel very lightheaded')
         else:
             self.prob = 0.2
@@ -489,15 +475,12 @@ class Dizziness(Condition):
     def on_completion(self):
         self.body.message("You feel less dizzy")
 
-    def is_over(self, time):
-        return time > self.details['duration']
-
 
 class Coughing(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.7
+            self.prob = 0.4
         else:
             self.prob = 0.2
 
@@ -516,17 +499,13 @@ class Coughing(Condition):
     def on_completion(self):
         pass
 
-    def is_over(self, time):
-        return time > self.details['duration'] \
-            if duration in self.details else False
-
 
 class Fever(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
             self.body.message("You feel very ill")
-            self.prob = 0.7
+            self.prob = 0.4
         else:
             self.body.message("You feel ill")
             self.prob = 0.2
@@ -545,16 +524,12 @@ class Fever(Condition):
     def on_completion(self):
         pass
 
-    def is_over(self, time):
-        return time > self.details['duration'] \
-            if duration in self.details else False
-
 
 class Chills(Condition):
 
     def on_start(self):
         if 'severe' in self.details:
-            self.prob = 0.6
+            self.prob = 0.4
         else:
             self.prob = 0.2
 
@@ -574,6 +549,23 @@ class Chills(Condition):
     def on_completion(self):
         pass
 
-    def is_over(self, time):
-        return time > self.details['duration'] \
-            if duration in self.details else False
+
+# Infectious Diseases:
+
+
+class Pneumonia(Condition):
+
+    def on_start(self):
+        self.prob = 0.2
+        self.sc('pneumonia_cough', Cough(), {'severe': True})
+        self.sc('pneumonia_fever', Feber(), {})
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            self.body.message("You feel a sharp pain in your chest")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
