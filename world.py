@@ -438,9 +438,10 @@ def generate_hospital():
     # randomly distribute important items
     important = ['flyer on %s' % topic for topic in
                  ('pneumonia', 'pertussis', 'tb', 'sleeping sickness',
-                     'dengue')] + ['amoxicillin', 'dengue antiserum',
-                                   'pentamidine', 'eflornithine', 'rifampicin',
-                                   'erythromycin']
+                     'dengue', 'blood sugar')] + \
+                ['amoxicillin', 'dengue antiserum',
+                 'pentamidine', 'eflornithine', 'rifampicin',
+                 'erythromycin']
 
     for name in important:
         pos = Pos(

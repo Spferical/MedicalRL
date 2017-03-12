@@ -160,6 +160,12 @@
             "interaction": "READ",
             "consumed_on_use": false
         },
+        "flyer on blood sugar": {
+            "char": ":",
+            "fg_color": "light_chartreuse",
+            "interaction": "READ",
+            "consumed_on_use": false
+        },
         "cabinet": {
             "char": "=",
             "fg_color": "sepia",
