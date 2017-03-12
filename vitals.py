@@ -25,7 +25,7 @@ class Body(object):
 
             'MAX_NUTRITION': 2000,
             'BASE_NUTRITION': 1900,
-            'HUNGER_PENALTY': 50,
+            'HUNGER_PENALTY': 20,
             'LIGHT_HUNGER': 0.8,
             'MEDIUM_HUNGER': 0.7,
             'HEAVY_HUNGER': 0.4,
@@ -148,16 +148,16 @@ class Body(object):
         events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
 
     def sleep(self):
+        print("original fatigue: {}".format(self.gs('fatigue')))
         noise = random() * 0.5 - 0.25
         max_ds = self.const('MAX_FATIGUE') - self.const('BASE_FATIGUE')
         hunger_ratio = self.gs('nutrition') / self.const('MAX_NUTRITION')
         ds = self.gs('fatigue') - self.const('BASE_FATIGUE')
-        sleep_time = max(min((ds / max_ds + noise), 1.0)
+        sleep_time = max(min(ds / max_ds + noise, 1.0)
                          * self.const('MAX_SLEEP_TIME'), 0)
-        new_fatigue = max(self.const('BASE_FATIGUE') * noise,
+        new_fatigue = max(self.const('BASE_FATIGUE') * (1 + noise),
                           self.const('BASE_FATIGUE'))
         additional_fatigue = \
-            (1 - self.gs('nutrition') / self.const('MAX_NUTRITION')) * \
             self.const('HUNGER_PENALTY') if hunger_ratio < self.const(
                 'MEDIUM_HUNGER') else 0
         new_fatigue = min(new_fatigue + additional_fatigue, 50)
