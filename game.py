@@ -102,6 +102,16 @@ class Game(object):
                 world.create_object(obj.pos, "open door")
             self.update_fov()
             return True
+        elif obj.interaction == world.Interactions.OPEN_CONTAINER:
+            # let the player pick an item
+            index = ui.menu(obj.name,
+                            [item.name for item in obj.contents], 24)
+            if index is not None and index != 'escape':
+                item = obj.contents.pop(index)
+                self.world.player.body.inventory.append(item)
+                self.ui.messages_window.message(
+                    "You take the " + item.name
+                    + " out of the " + obj.name + ".")
         elif obj.interaction == world.Interactions.PREGNANCY_TEST:
             self.ui.messages_window.message(
                 "You perform a pregnancy test on yourself...")

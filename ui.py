@@ -291,7 +291,7 @@ class UI(object):
                         return turn_used
                 else:
                     self.messages_window.message("You have no items.")
-            elif char == 'g':
+            elif char == 'g' or char == ',':
                 obj = game.player_level.get_object(game.world.player.pos)
                 if obj is not None and obj.pickup:
                     # try to pick it up

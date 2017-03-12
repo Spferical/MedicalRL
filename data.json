@@ -49,8 +49,15 @@
             "char": "(",
             "fg_color": "yellow",
             "interaction": "EAT",
-            "food_info": {"nutrition": 100},
+            "food_info": {"nutrition": 100, "high_carb": true},
             "consumed_on_use": true
+        },
+        "cabinet": {
+            "char": "=",
+            "fg_color": "sepia",
+            "bg_color": "dark_sepia",
+            "interaction": "OPEN_CONTAINER",
+            "passable": false
         }
     }
 }
