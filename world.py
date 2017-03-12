@@ -334,13 +334,17 @@ def filled_a_tiles_away(grid, x, y, a, outside_filled=False):
                 yield (x1, y1)
 
 
-def create_closed_door(pos):
-    return Object(pos, 'closed door', passable=False, opaque=True,
-                  interaction=Interactions.OPEN_DOOR)
-
-
-def create_open_door(pos):
-    return Object(pos, 'open door', passable=True)
+def create_object(pos, name):
+    assert name in objinfo
+    json = objinfo[name]
+    default = objinfo['default']
+    return Object(pos, name,
+                  json.get("passable", default['passable']),
+                  json.get("opaque", default['opaque']),
+                  getattr(Interactions,
+                          json.get("interaction", default['interaction'])),
+                  json.get("pickup", default['pickup']),
+                  json.get("consumed_on_use", default['consumed_on_use']))
 
 
 def try_to_dig_hospital_room(level, entrance, direction):
@@ -350,7 +354,7 @@ def try_to_dig_hospital_room(level, entrance, direction):
         # room was successfully dug
         # add the door
         dig(level, entrance.x, entrance.y)
-        level.objects[entrance] = create_closed_door(entrance)
+        level.objects[entrance] = create_object(entrance, "closed door")
 
         # stick a bed across from the entrance
         corners = (Pos(rect.left, rect.top), Pos(rect.right, rect.bottom))

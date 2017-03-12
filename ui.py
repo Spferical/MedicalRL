@@ -524,9 +524,10 @@ def handle_main_menu():
 
 
 def create_drawable_from_json(info):
+    bg_color = info.get("bg_color", None)
     return Drawable(info["char"],
                     getattr(tcod, info["fg_color"]),
-                    getattr(tcod, info["bg_color"]))
+                    getattr(tcod, bg_color) if bg_color is not None else None)
 
 
 def draw_cell(con, pos, char, fg, bg=None):

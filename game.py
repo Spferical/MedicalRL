@@ -96,7 +96,7 @@ class Game(object):
             # the object is a closed door
             # replace it with an open door
             self.player_level.objects[obj.pos] = \
-                world.create_open_door(obj.pos)
+                world.create_object(obj.pos, "open door")
             self.update_fov()
             return True
         elif obj.interaction == world.Interactions.PREGNANCY_TEST:

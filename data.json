@@ -9,25 +9,39 @@
     "factions": {},
     "mobs": {},
     "objects": {
+        "default": {
+            "char": " ",
+            "fg_color": "white",
+            "bg_color": "black",
+            "nutrition": 0,
+            "passable": true,
+            "interaction": "NONE",
+            "consumed_on_use": false,
+            "pickup": false,
+            "opaque": false
+        },
         "bed": {
             "char": "=",
             "fg_color": "white",
-            "bg_color": "blue"
+            "bg_color": "blue",
+            "passable": false
         },
         "closed door": {
             "char": "+",
             "fg_color": "sepia",
-            "bg_color": "black"
+            "interaction": "OPEN_DOOR",
+            "passable": false,
+            "opaque": true
         },
         "open door": {
             "char": "`",
             "fg_color": "sepia",
-            "bg_color": "black"
+            "pickup": false
         },
         "pregnancy test": {
             "char": "'",
             "fg_color": "pink",
-            "bg_color": "black"
+            "interaction": "PREGNANCY_TEST"
         }
     }
 }
