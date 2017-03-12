@@ -17,7 +17,7 @@ class Body(object):
         self.constants = {
             'BASE_FATIGUE': 10,
             'MAX_FATIGUE': 100,
-            'FATIGUE_RATE': 1.003,
+            'FATIGUE_RATE': 1.004,
             'LIGHT_FATIGUE': 20,
             'MEDIUM_FATIGUE': 40,
             'HEAVY_FATIGUE': 60,
@@ -682,7 +682,7 @@ class Dengue(Condition):
 class SleepingSickness(Condition):
 
     def on_start(self):
-        print("Sleeping sickness")
+        print('sleeping sickness')
         self.prob = 0.05
         self.body.sc('ss_joint_pains', JointPains(), {'duration': 200})
         self.body.sc('ss_fever', Fever(), {'duration': 200})
@@ -694,11 +694,14 @@ class SleepingSickness(Condition):
             if random() < self.prob:
                 self.body.message(
                     "You notice that the lymph nodes on your neck are enlarged")
-        else:
+        elif not self.body.hc('sleeping'):
+            self.prob = 0.5
             self.body.sc('ss_shaking', Shaking(), {})
             if random() < self.prob:
                 if random() < 0.5:
-                    self.message('You feel confused')
+                    self.body.message('You feel confused')
+                else:
+                    self.body.ss('fatigue', self.body.gs('fatigue') * 1.1)
 
     def on_interact(self, obj, time):
         return True
@@ -728,6 +731,7 @@ diseases = [
 
 
 class Asthma(Condition):
+
     def on_start(self):
         self.prob = 0.005
 
@@ -743,6 +747,7 @@ class Asthma(Condition):
 
 
 class AsthmaAttack(Condition):
+
     def on_start(self):
         self.body.message("Your chest tightens. You can't breathe!")
         self.prob = 0.1
