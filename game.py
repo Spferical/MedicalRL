@@ -100,6 +100,10 @@ class Game(object):
             self.update_fov()
             return True
         elif obj.interaction == world.Interactions.OPEN_CONTAINER:
+            if not obj.contents:
+                self.ui.messages_window.message(
+                    "The " + obj.name + " is empty.")
+                return
             # let the player pick an item
             index = ui.menu(obj.name,
                             [item.name for item in obj.contents], 24)
