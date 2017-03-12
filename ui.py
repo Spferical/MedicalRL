@@ -6,6 +6,7 @@ import events
 from mob import MobState
 from util import Pos
 from textwrap import wrap
+import vitals
 import world
 
 
@@ -437,6 +438,27 @@ def yes_no_menu(question):
     return chr(key.c) == 'y'
 
 
+def choice_menu(title, menu_items):
+    chosen = []
+    choices = menu_items + ['Done']
+    choice = -1
+    while choice != len(menu_items):
+        tcod.console_clear(0)
+        choice = menu(title, choices, SCREEN_WIDTH,
+                      highlighted=[choices.index(i) for i in chosen])
+        if choice is not None and choice != len(menu_items):
+            if choice == 'escape':
+                return None
+            choice = choices[choice]
+            if choice in chosen:
+                chosen.remove(choice)
+            else:
+                chosen.append(choice)
+        if tcod.console_is_window_closed():
+            return None
+    return chosen
+
+
 def menu(header, options, width, highlighted=[]):
     """Basic, general-purpose menu.
     Allows the user to choose from up to 26 text options."""
@@ -522,6 +544,13 @@ def handle_main_menu():
             return MainMenuChoice.PLAY
         elif choice == 1 or choice == 'escape':  # quit
             return MainMenuChoice.EXIT
+
+
+def ask_player_for_preexisting_conditions():
+    return {x: vitals.preexisting_conditions[x]()
+            for x in choice_menu(
+                'Choose some preexisting conditions for maximum fun...',
+                [name for name in vitals.preexisting_conditions.keys()])}
 
 
 def create_drawable_from_json(info):

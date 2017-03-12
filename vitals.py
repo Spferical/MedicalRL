@@ -115,6 +115,11 @@ class Body(object):
         # Set blood sugar
         self.ss('blood_sugar', self.const('FASTING_BLOOD_SUGAR'))
 
+        # pre-existing conditions
+        for name, condition in \
+                character_info['PREEXISTING_CONDITIONS'].items():
+            self.sc(name, condition)
+
         self.visible = set(('fatigue', 'nutrition'))
 
     def is_critical(self, stat_name):
@@ -176,7 +181,7 @@ class Body(object):
         fails = False
         for name, condition in self.conditions.items():
             can_do_it = condition.on_interact(
-                condition, self.turn_number - condition.start_time)
+                obj, self.turn_number - condition.start_time)
             if not can_do_it:
                 fails = True
 
@@ -196,7 +201,9 @@ class Body(object):
         elif obj.interaction == Interactions.SLEEP:
             if self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
                 action_time = self.sleep()
+                self.message("You sleep for a while.")
             else:
+                self.message("You can't sleep.")
                 return -1
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
@@ -335,7 +342,7 @@ class Condition(object):
     def on_completion(self):
         pass
 
-    def is_over(self):
+    def is_over(self, time):
         pass
 
 
@@ -577,3 +584,18 @@ class Chills(Condition):
     def is_over(self, time):
         return time > self.details['duration'] \
             if duration in self.details else False
+
+
+class Insomnia(Condition):
+    def on_interact(self, obj, time):
+        if obj.interaction == Interactions.SLEEP:
+            fatigue = self.body.gs('fatigue')
+            if random() > fatigue / self.body.const('MAX_FATIGUE'):
+                self.body.message("You can't sleep.")
+                return False
+        return True
+
+
+preexisting_conditions = {
+    'insomnia': Insomnia,
+}

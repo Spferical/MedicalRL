@@ -7,6 +7,7 @@ import fov
 from mob import MobState
 import path
 import world
+import vitals
 
 
 class Game(object):
@@ -134,8 +135,6 @@ class Game(object):
             action = True
         elif obj.interaction == world.Interactions.SLEEP:
             if ui.yes_no_menu("Sleep in the bed?") is True:
-                self.ui.messages_window.message(
-                    "You try to sleep for a while.")
                 action = True
         if action:
             t = self.world.player.body.on_interact(obj)
@@ -175,7 +174,9 @@ class Game(object):
             self.update_player_status()
             return True
 
-    def run(self, character_info={'ADDITONAL_FATIGUE': []}):
+    def run(self, character_info={'ADDITONAL_FATIGUE': [],
+                                  'PREEXISTING_CONDITIONS': []}):
+
         self.world.player.body.on_game_start(character_info)
         while self.alive and not tcod.console_is_window_closed():
             if self.ui.handle_input(self):
