@@ -135,10 +135,10 @@ class Game(object):
         elif obj.interaction == world.Interactions.SLEEP:
             if ui.yes_no_menu("Sleep in the bed?") is True:
                 self.ui.messages_window.message(
-                    "You sleep for a while.")
+                    "You try to sleep for a while.")
                 action = True
         if action:
-            t = self.world.player.body.get_interaction_time(obj)
+            t = self.world.player.body.on_interact(obj)
             if t != -1:
                 self.accum += t
         return action

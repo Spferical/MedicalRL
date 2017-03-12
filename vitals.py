@@ -46,7 +46,9 @@ class Body(object):
             'MAX_NATURAL_BLOOD_SUGAR': 200,
             'LOW_BLOOD_SUGAR_OFFSET': 0.2,
             'LOW_BLOOD_SUGAR': 65,
-            'BLOOD_SUGAR_SYMPTOM_PROB': 0.1
+            'BLOOD_SUGAR_SYMPTOM_PROB': 0.1,
+
+            'FAINT_INJURY_PROB': 0.3
         }
 
         self.conditions = {}
@@ -145,10 +147,42 @@ class Body(object):
         self.turn_number += 1
         events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
 
-    def get_interaction_time(self, obj):
+    def sleep(self):
+        noise = random() * 0.5 - 0.25
+        max_ds = self.const('MAX_FATIGUE') - self.const('BASE_FATIGUE')
+        hunger_ratio = self.gs('nutrition') / self.const('MAX_NUTRITION')
+        ds = self.gs('fatigue') - self.const('BASE_FATIGUE')
+        sleep_time = max(min((ds / max_ds + noise), 1.0)
+                         * self.const('MAX_SLEEP_TIME'), 0)
+        new_fatigue = max(self.const('BASE_FATIGUE') * noise,
+                          self.const('BASE_FATIGUE'))
+        additional_fatigue = \
+            (1 - self.gs('nutrition') / self.const('MAX_NUTRITION')) * \
+            self.const('HUNGER_PENALTY') if hunger_ratio < self.const(
+                'MEDIUM_HUNGER') else 0
+        new_fatigue = min(new_fatigue + additional_fatigue, 50)
+        print("additional fatigue: {}".format(additional_fatigue))
+        print("new fatigue: {}".format(new_fatigue + additional_fatigue))
+        self.ss('sleeping', True)
+        self.ss('fatigue', new_fatigue)
+        print("Sleep time: {}".format(sleep_time))
+        return sleep_time
+
+    def on_interact(self, obj):
         ''' Returns the time that it takes the player to interact with obj '''
         action_time = 1
         k = 1
+
+        fails = False
+        for name, condition in self.conditions.items():
+            can_do_it = condition.on_interact(
+                condition, self.turn_number - condition.start_time)
+            if not can_do_it:
+                fails = True
+
+        if fails:
+            return False
+
         if obj.interaction == Interactions.OPEN_DOOR:
             action_time = self.const('OPEN_DOOR_TIME')
             leg_injury = self.gc('leg_injury')
@@ -160,28 +194,10 @@ class Body(object):
         elif obj.interaction == Interactions.EAT:
             action_time = self.const('EAT_TIME')
         elif obj.interaction == Interactions.SLEEP:
-            noise = random() - 0.5
-            max_ds = self.const('MAX_FATIGUE') - self.const('BASE_FATIGUE')
-            ds = self.gs('fatigue') - self.const('BASE_FATIGUE')
-            sleep_time = max(min((ds / max_ds + noise), 1.0)
-                             * self.const('MAX_SLEEP_TIME'), 0)
-            delta = (self.gs('fatigue') - self.const('BASE_FATIGUE')) * noise
-            new_fatigue = max(self.gs('fatigue') - delta,
-                              self.const('BASE_FATIGUE'))
-            print("new fatigue: {}".format(new_fatigue))
-            self.ss('sleeping', True)
-            self.ss('fatigue', new_fatigue)
-            action_time = sleep_time
-
-        fails = False
-        for name, condition in self.conditions.items():
-            can_do_it = condition.on_interact(
-                condition, self.turn_number - condition.start_time)
-            if not can_do_it:
-                fails = True
-
-        if fails:
-            return False
+            if self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
+                action_time = self.sleep()
+            else:
+                return -1
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
@@ -221,7 +237,20 @@ class Body(object):
 
     def handle_fatigue(self):
         if self.gs('fatigue') > self.const('MAX_FATIGUE'):
-            pass
+            self.message("You faint...")
+            self.sleep()
+            if random() < self.const('FAINT_INJURY_PROB'):
+                if random() < 0.5:
+                    self.ss('arm_injury', True)
+                    self.message(
+                        "As you come to, you notice that you injured "
+                        "your arm in the fall")
+                else:
+                    self.ss('leg_injury', True)
+                    self.message(
+                        "As you come to, you notice that you injured "
+                        "your leg in the fall")
+            self.message("You groggily awaken and pick yourself up")
         else:
             self.ss('fatigue', self.gs('fatigue') * self.const('FATIGUE_RATE'))
             if random() < self.const('FATIGUE_MESSAGE_PROB'):
@@ -251,7 +280,7 @@ class Body(object):
                 self.message("You feel hungry")
 
     def handle_blood_sugar(self):
-        print('current blood sugar: {}'.format(self.gs('blood_sugar')))
+        #print('current blood sugar: {}'.format(self.gs('blood_sugar')))
         noise = (random() - 0.5)
         if 'blood_sugar_spike' not in self.stats:
             nutrition_ratio = self.gs('nutrition') / \
@@ -259,7 +288,7 @@ class Body(object):
             target = self.const('FASTING_BLOOD_SUGAR') * \
                 min(self.const('LOW_BLOOD_SUGAR_OFFSET') + nutrition_ratio, 1.0)
             delta = noise + 1
-            print('target blood sugar: {}'.format(target))
+            #print('target blood sugar: {}'.format(target))
 
         else:
             start_turn = self.gs('blood_sugar_spike').start_turn
