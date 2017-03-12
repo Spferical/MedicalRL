@@ -45,6 +45,7 @@ class Interactions(Enum):
     OPEN_DOOR = 1
     PREGNANCY_TEST = 2
     EAT = 3
+    OPEN_CONTAINER = 4
 
 
 class Object(object):
@@ -66,6 +67,7 @@ class Object(object):
         self.pickup = pickup
         self.consumed_on_use = consumed_on_use
         self.food_info = food_info
+        self.contents = []
         events.events.send(events.Event(events.EventType.BIRTH, self))
 
 
@@ -369,8 +371,12 @@ def try_to_dig_hospital_room(level, entrance, direction):
             y = random.randint(rect.top, rect.bottom)
             pos = Pos(x, y)
             if not level.get_object(pos):
-                item = create_object(pos, random.choice(
-                    ("banana", "pregnancy test")))
+                name = random.choice(
+                    ("banana", "pregnancy test", "cabinet"))
+                item = create_object(pos, name)
+                if name == 'cabinet':
+                    item.contents.append(
+                        create_object(pos, "banana"))
                 level.objects[pos] = item
 
 
