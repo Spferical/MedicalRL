@@ -507,7 +507,7 @@ class Cough(Condition):
     def on_interact(self, obj, time):
         if obj.interaction == Interactions.EAT:
             if random() < self.prob and 'severe' in self.details:
-                print("You cough and spit out your food")
+                message("You cough and spit out your food")
                 return False
         return True
 
@@ -564,6 +564,67 @@ class Chills(Condition):
     def on_completion(self):
         pass
 
+
+class Nausea(Condition):
+
+    def on_start(self):
+        self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("You feel queasy")
+            else:
+                self.body.message("Your feel nauseated")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
+class JointPains(Condition):
+
+    def on_start(self):
+        self.prob = 0.2
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if random() < 0.5:
+                self.body.message("Your joints ache")
+            else:
+                self.body.message("Your knees hurt")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
+class Vomiting(Condition):
+
+    def on_start(self):
+        self.prob = 0.05
+
+    def on_progression(self, time):
+        if random() < self.prob:
+            if self.body.gs('nutrition') / self.body.const('MAX_NUTRITION') > 0.5:
+                self.body.ss('nutrition', max(self.body.gs('nutrition') - 200,
+                                              self.body.const('MAX_NUTRITION') / 2))
+                self.body.message("You vomit and stain the floor")
+                if 'bloody' in self.body.stats:
+                    self.body.message("You notice blood in the vomit")
+            else:
+                self.body.message("You retch but nothing comes out")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
 # Infectious Diseases:
 
 
@@ -577,6 +638,25 @@ class Pneumonia(Condition):
     def on_progression(self, time):
         if random() < self.prob:
             self.body.message("You feel a sharp pain in your chest")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
+class Dengue(Condition):
+
+    def on_start(self):
+        self.prob = 0.2
+        self.body.ss('bleeding', True)
+        self.body.sc('dengue_joint_pains', JointPains(), {})
+        self.body.sc('dengue_fever', Fever(), {})
+        self.body.sc('dengue_vomit', Vomiting(), {})
+
+    def on_progression(self, time):
+        pass
 
     def on_interact(self, obj, time):
         return True
@@ -598,7 +678,8 @@ class Insomnia(Condition):
         return True
 
 diseases = [
-    Pneumonia()
+    Pneumonia(),
+    Dengue()
 ]
 
 preexisting_conditions = {
