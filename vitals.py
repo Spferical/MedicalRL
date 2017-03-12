@@ -150,8 +150,10 @@ class Body(object):
             action_time = self.const('EAT_TIME')
 
         for name, condition in self.conditions.items():
-            condition.on_interact(condition,
-                                  self.turn_number - condition.start_time)
+            can_do_it = condition.on_interact(
+                condition, self.turn_number - condition.start_time)
+            if not can_do_it:
+                return -1
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
