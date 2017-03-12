@@ -144,9 +144,13 @@ class Game(object):
             self.ui.messages_window.message(
                 "You drink the antiserum.")
             action = True
-        elif obj.interaction == world.Interactions.CURE_SLEEPING_SICKNESS:
+        elif obj.interaction == world.Interactions.CURE_SLEEPING_SICKNESS_1:
             self.ui.messages_window.message(
                 "You inject the pentamidine.")
+            action = True
+        elif obj.interaction == world.Interactions.CURE_SLEEPING_SICKNESS_2:
+            self.ui.messages_window.message(
+                "You apply the eflornithine cream.")
             action = True
         elif obj.interaction == world.Interactions.CURE_TB:
             self.ui.messages_window.message(

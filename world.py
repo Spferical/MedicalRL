@@ -50,9 +50,10 @@ class Interactions(Enum):
     INHALER = 6
     CURE_PNEUMONIA = 7
     CURE_DENGUE = 8
-    CURE_SLEEPING_SICKNESS = 9
+    CURE_SLEEPING_SICKNESS_1 = 9
     CURE_TB = 10
     CURE_PERTUSSIS = 11
+    CURE_SLEEPING_SICKNESS_2 = 12
 
 
 class Object(object):

@@ -740,7 +740,9 @@ class SleepingSickness(Condition):
                     self.body.ss('fatigue', self.body.gs('fatigue') * 1.1)
 
     def on_interact(self, obj, time):
-        if obj.interaction == Interactions.CURE_SLEEPING_SICKNESS:
+        if obj.interaction == Interactions.CURE_SLEEPING_SICKNESS_1 \
+                and time <= 200 \
+                or obj.interaction == Interactions.CURE_SLEEPING_SICKNESS_2:
             self.over = True
             self.body.message(
                 "You have found the cure for your sleeping sickness!",

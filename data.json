@@ -109,7 +109,13 @@
         "pentamidine": {
             "char": "!",
             "fg_color": "light_purple",
-            "interaction": "CURE_SLEEPING_SICKNESS",
+            "interaction": "CURE_SLEEPING_SICKNESS_1",
+            "consumed_on_use": false
+        },
+        "pentamidine": {
+            "char": "!",
+            "fg_color": "light_gray",
+            "interaction": "CURE_SLEEPING_SICKNESS_2",
             "consumed_on_use": false
         },
         "rifampicin": {
