@@ -1,5 +1,11 @@
 from events import events, message, Event, EventType
 from random import random
+from collections import namedtuple
+
+blood_sugar_spike = namedtuple('blood_sugar_spike',
+                               ['current_blood_sugar',
+                                'spike_blood_sugar',
+                                'start_turn'])
 
 
 class Body:
@@ -25,7 +31,22 @@ class Body:
             'HUNGER_MESSAGE_PROB': 0.05,
 
             'INJURY_MOD': 10,
-            'OPEN_DOOR_TIME': 3
+            'OPEN_DOOR_TIME': 3,
+            'EAT_TIME': 20,
+
+            "FASTING_BLOOD_SUGAR": 85,
+            "HIGH_CARB_SPIKE": 2.0,
+            "MEDIUM_CARB_SPIKE": 1.5,
+            "LOW_CARB_SPIKE": 1.3,
+            'SUGAR_SPIKE_DURATION': 20,
+            'MAX_NATURAL_BLOOD_SUGAR': 200,
+            'LOW_BLOOD_SUGAR_OFFSET': 0.2,
+            'LOW_BLOOD_SUGAR': 65,
+            'BLOOD_SUGAR_SYMPTOM_PROB': 0.1
+        }
+
+        self.nutrition_lookup_table = {
+            'coffee_food': {'nutrition': 50},
         }
 
         self.conditions = {}
@@ -62,6 +83,7 @@ class Body:
     def on_game_start(self, character_info):
         ''' Called when the game starts '''
 
+        self.turn_number = 0
         self.ss('nutrition', self.const('BASE_NUTRITION'))
 
         # Base Fatigue for character
@@ -77,6 +99,9 @@ class Body:
 
         # Set fatigue value
         self.ss('fatigue', base_fatigue + additional_fatigue)
+
+        # Set blood sugar
+        self.ss('blood_sugar', self.const('FASTING_BLOOD_SUGAR'))
 
         self.visible = set(('fatigue', 'nutrition'))
 
@@ -94,6 +119,8 @@ class Body:
         ''' Called every action in game '''
         self.handle_fatigue()
         self.handle_nutrition()
+        self.handle_blood_sugar()
+        self.turn_number += 1
 
     def on_interact(self, obj):
         ''' Called upon interacting with objects '''
@@ -107,6 +134,11 @@ class Body:
             arm_injury = arm_injury if arm_injury != None else 0
 
             k += (leg_injury + arm_injury) * self.const('INJURY_MOD')
+        elif obj.name.contains('food'):
+            new_nutrition = self.nutrition_lookup_table[obj.name]["nutrition"]
+            self.ss('nutrition', self.gs('nutrition') + new_nutrition)
+            self.on_eat(self.nutrition_lookup_table[obj.name])
+            action_time = self.const['EAT_TIME']
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
@@ -114,6 +146,31 @@ class Body:
         events.send(Event(EventType.PLAYER_STATUS_UPDATE, self.player))
 
         return time
+
+    def on_eat(self, food):
+        ''' Called upon ingesting food (do not include nutrition
+        calculations here) '''
+        current_blood_sugar = self.gs('blood_sugar')
+        spike = lambda multiplier: min(current_blood_sugar * multiplier,
+                                       self.const('MAX_NATURAL_BLOOD_SUGAR'))
+        if 'high_carb' in food:
+            self.ss('blood_sugar_spike',
+                    blood_sugar_spike(
+                        current_blood_sugar,
+                        spike(self.const('HIGH_CARB_SPIKE')),
+                        self.turn_number))
+        elif 'medium_carb' in food:
+            self.ss('blood_sugar_spike',
+                    blood_sugar_spike(
+                        current_blood_sugar,
+                        spike(self.const('MEDIUM_CARB_SPIKE')),
+                        self.turn_number))
+        elif 'low_carb' in food:
+            self.ss('blood_sugar_spike',
+                    blood_sugar_spike(
+                        current_blood_sugar,
+                        spike(self.const('LOW_CARB_SPIKE')),
+                        self.turn_number))
 
     def handle_fatigue(self):
         if self.gs('fatigue') > self.const('MAX_FATIGUE'):
@@ -145,3 +202,39 @@ class Body:
             elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
                     < self.const('LIGHT_HUNGER'):
                 message("You feel hungry")
+
+    def handle_blood_sugar(self):
+        print('current blood sugar: {}'.format(self.gs('blood_sugar')))
+        noise = (random() - 0.5)
+        if 'blood_sugar_spike' not in self.stats:
+            nutrition_ratio = self.gs('nutrition') / \
+                self.const('MAX_NUTRITION')
+            target = self.const('FASTING_BLOOD_SUGAR') * \
+                min(self.const('LOW_BLOOD_SUGAR_OFFSET') + nutrition_ratio, 1.0)
+            delta = noise + 1
+            print('target blood sugar: {}'.format(target))
+
+        else:
+            start_turn = self.gs('blood_sugar_spike')
+            if self.turn_number - start_turn > \
+               self.const('SUGAR_SPIKE_DURATION'):
+                del self.stats['blood_sugar_spike']
+                return
+            target = self.gs('blood_sugar_spike').spike_blood_sugar
+            delta = noise + 4
+
+        if self.gs('blood_sugar') < target:
+            self.ss('blood_sugar', self.gs('blood_sugar') + delta)
+        else:
+            self.ss('blood_sugar', self.gs('blood_sugar') - delta)
+
+        if self.gs('blood_sugar') < self.const('LOW_BLOOD_SUGAR') and \
+           random() < self.const('BLOOD_SUGAR_SYMPTOM_PROB'):
+            symptoms = ['blurry_vision',
+                        'rapid_heartbeat',
+                        'anxiety',
+                        'irritability',
+                        'headache',
+                        'shaking',
+                        'dizziness',
+                        'focus_issues']
