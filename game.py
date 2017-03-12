@@ -128,9 +128,6 @@ class Game(object):
                     "You are not pregnant.", tcod.pink)
             action = True
         elif obj.interaction == world.Interactions.EAT:
-            self.world.player.body.on_eat(obj.food_info)
-            self.ui.messages_window.message(
-                "You eat the " + obj.name + ".", tcod.light_blue)
             action = True
         elif obj.interaction == world.Interactions.SLEEP:
             if ui.yes_no_menu("Sleep in the bed?") is True:
@@ -151,7 +148,8 @@ class Game(object):
             t = self.world.player.body.on_interact(obj)
             if t != -1:
                 self.accum += t
-        return action
+                return True
+        return False
 
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""

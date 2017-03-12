@@ -189,7 +189,7 @@ class Body(object):
                 fails = True
 
         if fails:
-            return False
+            return -1
 
         if obj.interaction == Interactions.OPEN_DOOR:
             action_time = self.const('OPEN_DOOR_TIME')
@@ -201,9 +201,12 @@ class Body(object):
             k += (leg_injury + arm_injury) * self.const('INJURY_MOD')
         elif obj.interaction == Interactions.EAT:
             action_time = self.const('EAT_TIME')
+            self.on_eat(obj.food_info)
+            self.message(
+                "You eat the " + obj.name + ".", tcod.light_blue)
         elif obj.interaction == Interactions.SLEEP:
             if self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
-                self.message("You sleep for a while.")
+                self.message("You sleep for a while.", tcod.light_blue)
                 action_time = self.sleep()
             else:
                 self.message("You can't sleep.")

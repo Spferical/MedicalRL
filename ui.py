@@ -291,7 +291,7 @@ class UI(object):
                     if index is not None and index != 'escape':
                         item = inventory[index]
                         turn_used = game.interact_with_object(item)
-                        if item.consumed_on_use:
+                        if turn_used and item.consumed_on_use:
                             inventory.remove(item)
                         return turn_used
                 else:
