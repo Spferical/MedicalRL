@@ -1,4 +1,5 @@
-from events import events, message, Event, EventType
+from events import events, Event, EventType
+from events import message as ev_message
 from random import random, choice
 from collections import namedtuple
 from world import Interactions
@@ -31,6 +32,8 @@ class Body(object):
             'CRITICAL_HUNGER': 0.3,
             'HUNGER_MESSAGE_PROB': 0.05,
 
+            'MAX_SLEEP_TIME': 500,
+
             'INJURY_MOD': 10,
             'OPEN_DOOR_TIME': 3,
             'EAT_TIME': 5,
@@ -51,6 +54,10 @@ class Body(object):
         self.inventory = []
         self.visible = set()
         self.player = player
+
+    def message(self, m):
+        if "sleeping" not in self.stats:
+            ev_message(m)
 
     def gs(self, stat_name):
         return self.stats.get(stat_name, None)
@@ -148,6 +155,8 @@ class Body(object):
             k += (leg_injury + arm_injury) * self.const('INJURY_MOD')
         elif obj.interaction == Interactions.EAT:
             action_time = self.const('EAT_TIME')
+        elif obj.interaction == Interactions.SLEEP:
+            pass
 
         for name, condition in self.conditions.items():
             can_do_it = condition.on_interact(
@@ -198,29 +207,29 @@ class Body(object):
             self.ss('fatigue', self.gs('fatigue') * self.const('FATIGUE_RATE'))
             if random() < self.const('FATIGUE_MESSAGE_PROB'):
                 if self.gs('fatigue') > self.const('CRITICAL_FATIGUE'):
-                    message('You feel like you are about to pass out')
+                    self.message('You feel like you are about to pass out')
                 elif self.gs('fatigue') > self.const('HEAVY_FATIGUE'):
-                    message('You feel incredibly tired')
+                    self.message('You feel incredibly tired')
                 elif self.gs('fatigue') > self.const('MEDIUM_FATIGUE'):
-                    message('You feel tired')
+                    self.message('You feel tired')
                 elif self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
-                    message('You feel sleepy')
+                    self.message('You feel sleepy')
 
     def handle_nutrition(self):
         self.ss('nutrition', self.gs('nutrition') - 1)
         if random() < self.const('HUNGER_MESSAGE_PROB'):
             if self.gs('nutrition') / self.const('MAX_NUTRITION') \
                < self.const('CRITICAL_HUNGER'):
-                message("You are starving to death")
+                self.message("You are starving to death")
             elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
                     < self.const('HEAVY_HUNGER'):
-                message("Your belly aches with hunger cramps")
+                self.message("Your belly aches with hunger cramps")
             elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
                     < self.const('MEDIUM_HUNGER'):
-                message("You feel very hungry")
+                self.message("You feel very hungry")
             elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
                     < self.const('LIGHT_HUNGER'):
-                message("You feel hungry")
+                self.message("You feel hungry")
 
     def handle_blood_sugar(self):
         print('current blood sugar: {}'.format(self.gs('blood_sugar')))
@@ -291,20 +300,20 @@ class BlurryVision(Condition):
     prob = 0.3
 
     def on_start(self):
-        message("Everything looks hazy")
+        self.message("Everything looks hazy")
 
     def on_progression(self, time):
         if random() < self.prob:
-            message("You can barely see anything")
+            self.message("You can barely see anything")
 
     def on_interact(self, obj, time):
         if random() < self.prob:
-            message("You can't see what you're doing")
+            self.message("You can't see what you're doing")
             return False
         return True
 
     def on_completion(self):
-        message("Things don't look as blurry anymore")
+        self.message("Things don't look as blurry anymore")
 
     def is_over(self, time):
         return time > self.details['duration']
