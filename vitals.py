@@ -3,6 +3,7 @@ from events import message as ev_message
 from random import random, choice
 from collections import namedtuple
 from world import Interactions
+import tcod
 
 blood_sugar_spike = namedtuple('blood_sugar_spike',
                                ['current_blood_sugar',
@@ -30,6 +31,7 @@ class Body(object):
             'MEDIUM_HUNGER': 0.7,
             'HEAVY_HUNGER': 0.4,
             'CRITICAL_HUNGER': 0.3,
+            'STARVATION': 0.0,
             'HUNGER_MESSAGE_PROB': 0.05,
 
             'MAX_SLEEP_TIME': 500,
@@ -56,10 +58,11 @@ class Body(object):
         self.inventory = []
         self.visible = set()
         self.player = player
+        self.alive = True
 
-    def message(self, m):
+    def message(self, *args, **kwargs):
         if "sleeping" not in self.stats:
-            ev_message(m)
+            ev_message(*args, **kwargs)
 
     def gs(self, stat_name):
         return self.stats.get(stat_name, None)
@@ -200,8 +203,8 @@ class Body(object):
             action_time = self.const('EAT_TIME')
         elif obj.interaction == Interactions.SLEEP:
             if self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
-                action_time = self.sleep()
                 self.message("You sleep for a while.")
+                action_time = self.sleep()
             else:
                 self.message("You can't sleep.")
                 return -1
@@ -273,18 +276,22 @@ class Body(object):
     def handle_nutrition(self):
         self.ss('nutrition', self.gs('nutrition') - 1)
         if random() < self.const('HUNGER_MESSAGE_PROB'):
-            if self.gs('nutrition') / self.const('MAX_NUTRITION') \
-               < self.const('CRITICAL_HUNGER'):
+            ratio = self.gs('nutrition') / self.const('MAX_NUTRITION')
+            if ratio < self.const('STARVATION'):
+                self.message("You starve to death.", tcod.red)
+                self.die()
+            elif ratio < self.const('CRITICAL_HUNGER'):
                 self.message("You are starving to death")
-            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
-                    < self.const('HEAVY_HUNGER'):
+            elif ratio < self.const('HEAVY_HUNGER'):
                 self.message("Your belly aches with hunger cramps")
-            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
-                    < self.const('MEDIUM_HUNGER'):
+            elif ratio < self.const('MEDIUM_HUNGER'):
                 self.message("You feel very hungry")
-            elif self.gs('nutrition') / self.const('MAX_NUTRITION') \
-                    < self.const('LIGHT_HUNGER'):
+            elif ratio < self.const('LIGHT_HUNGER'):
                 self.message("You feel hungry")
+
+    def die(self):
+        self.alive = False
+        events.send(Event(EventType.GAME_OVER, None))
 
     def handle_blood_sugar(self):
         #print('current blood sugar: {}'.format(self.gs('blood_sugar')))
@@ -344,8 +351,8 @@ class Condition(object):
         pass
 
     def is_over(self, time):
-        return self.over or time > self.details['duration'] \
-            if 'duration' in self.details else False
+        return self.over or (time > self.details['duration']
+                             if 'duration' in self.details else False)
 
 
 class BlurryVision(Condition):
@@ -691,7 +698,7 @@ class Asthma(Condition):
 
     def on_progression(self, time):
         if random() < self.prob and not self.body.hs('sleeping'):
-            self.body.sc("asthma_attack", AsthmaAttack())
+            self.body.sc("asthma_attack", AsthmaAttack(), {'duration': 30})
 
     def on_interact(self, obj, time):
         return True
@@ -704,7 +711,7 @@ class AsthmaAttack(Condition):
     def on_start(self):
         self.body.message("Your chest tightens. You can't breathe!")
         self.prob = 0.1
-        self.body.sc('asthma_cough', Cough(), {})
+        self.body.sc('asthma_cough', Cough(), self.details)
 
     def on_progression(self, time):
         if time > 5 and random() < self.prob:
@@ -714,7 +721,9 @@ class AsthmaAttack(Condition):
     def on_interact(self, obj, time):
         if obj.interaction == Interactions.INHALER:
             self.over = True
-            self.body.gc('asthma_cough').over = True
+            cough = self.body.gc('asthma_cough')
+            if cough is not None:
+                cough.over = True
         return True
 
     def on_completion(self):

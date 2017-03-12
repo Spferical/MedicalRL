@@ -186,4 +186,7 @@ class Game(object):
         while self.alive and not tcod.console_is_window_closed():
             if self.ui.handle_input(self):
                 self.update_mobs()
+                if not self.world.player.body.alive:
+                    self.ui.messages_window.message("(Press escape to quit.)")
+
             self.ui.render()

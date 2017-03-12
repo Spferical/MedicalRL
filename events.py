@@ -12,6 +12,7 @@ class EventType(Enum):
     BIRTH = 7
     PLAYER_STATUS_UPDATE = 8
     REMOVAL = 9
+    GAME_OVER = 10
 
 
 class MoveInfo(object):
