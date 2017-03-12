@@ -91,7 +91,10 @@ class Game(object):
         """
         Returns whether an action took place.
         """
-        self.accum += self.world.player.body.get_interaction_time(obj)
+        t = self.world.player.body.get_interaction_time(obj)
+        if t == -1:
+            return False
+        self.accum += t
         if obj.interaction == world.Interactions.OPEN_DOOR:
             # the object is a closed door
             # replace it with an open door
@@ -112,7 +115,7 @@ class Game(object):
         elif obj.interaction == world.Interactions.EAT:
             self.world.player.body.on_eat(obj.food_info)
             self.ui.messages_window.message(
-                    "You eat the " + obj.name + ".", tcod.light_blue)
+                "You eat the " + obj.name + ".", tcod.light_blue)
             return True
 
     def attempt_player_move(self, direction):
