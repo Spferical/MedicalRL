@@ -46,6 +46,7 @@ class Interactions(Enum):
     PREGNANCY_TEST = 2
     EAT = 3
     OPEN_CONTAINER = 4
+    SLEEP = 5
 
 
 class Object(object):
@@ -363,20 +364,24 @@ def try_to_dig_hospital_room(level, entrance, direction):
         # stick a bed across from the entrance
         corners = (Pos(rect.left, rect.top), Pos(rect.right, rect.bottom))
         bed_corner = max(corners, key=lambda pos: entrance.distance(pos))
-        level.objects[bed_corner] = Object(bed_corner, 'bed', passable=False)
+        level.objects[bed_corner] = create_object(bed_corner, "bed")
 
         # populate the room with items
         for i in range(3):
             x = random.randint(rect.left, rect.right)
             y = random.randint(rect.top, rect.bottom)
             pos = Pos(x, y)
+            items = ("apple", "banana", "peas", "hospital mush", "peanuts",
+                     "almonds", "pregnancy test", "cabinet")
             if not level.get_object(pos):
-                name = random.choice(
-                    ("banana", "pregnancy test", "cabinet"))
+                name = random.choice(items)
                 item = create_object(pos, name)
                 if name == 'cabinet':
-                    item.contents.append(
-                        create_object(pos, "banana"))
+                    for j in range(random.randint(0, 3)):
+                        name2 = random.choice(items)
+                        if name2 != 'cabinet':
+                            item.contents.append(
+                                create_object(pos, name2))
                 level.objects[pos] = item
 
 

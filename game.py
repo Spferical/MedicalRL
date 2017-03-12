@@ -103,6 +103,10 @@ class Game(object):
             self.update_fov()
             return True
         elif obj.interaction == world.Interactions.OPEN_CONTAINER:
+            if not obj.contents:
+                self.ui.messages_window.message(
+                    "The " + obj.name + " is empty.")
+                return
             # let the player pick an item
             index = ui.menu(obj.name,
                             [item.name for item in obj.contents], 24)
@@ -127,6 +131,10 @@ class Game(object):
             self.ui.messages_window.message(
                 "You eat the " + obj.name + ".", tcod.light_blue)
             return True
+        elif obj.interaction == world.Interactions.SLEEP:
+            if ui.yes_no_menu("Sleep in the bed?") is True:
+                self.ui.messages_window.message(
+                    "You sleep for a while.")
 
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""
