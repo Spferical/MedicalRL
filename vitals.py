@@ -105,7 +105,8 @@ class Body(object):
         base_fatigue = self.const('BASE_FATIGUE')
 
         # Additional Fatigue for character
-        additional_fatigue = sum(character_info['ADDITONAL_FATIGUE'])
+        additional_fatigue = sum(character_info['ADDITIONAL_FATIGUE'])
+        self.ss('disease_fatigue', additional_fatigue)
 
         # Add hunger induced-fatigue
         additional_fatigue += \
@@ -164,7 +165,8 @@ class Body(object):
         sleep_time = max(min(ds / max_ds + noise, 1.0)
                          * self.const('MAX_SLEEP_TIME'), 0)
         new_fatigue = max(self.const('BASE_FATIGUE') * (1 + noise),
-                          self.const('BASE_FATIGUE'))
+                          self.const('BASE_FATIGUE')) + \
+            self.gs('disease_fatigue')
         additional_fatigue = \
             self.const('HUNGER_PENALTY') if hunger_ratio < self.const(
                 'MEDIUM_HUNGER') else 0
@@ -205,6 +207,7 @@ class Body(object):
             self.message(
                 "You eat the " + obj.name + ".", tcod.light_blue)
         elif obj.interaction == Interactions.SLEEP:
+            k = 0
             if self.gs('fatigue') > self.const('LIGHT_FATIGUE'):
                 self.message("You sleep for a while.", tcod.light_blue)
                 action_time = self.sleep()
@@ -660,6 +663,8 @@ class Vomiting(Condition):
 
 class Pneumonia(Condition):
 
+    additional_fatigue = 20
+
     def on_start(self):
         self.prob = 0.2
         self.body.sc('pneumonia_cough', Cough(), {'severe': True})
@@ -681,6 +686,8 @@ class Pneumonia(Condition):
 
 
 class Dengue(Condition):
+
+    additional_fatigue = 25
 
     def on_start(self):
         self.prob = 0.05
@@ -706,6 +713,8 @@ class Dengue(Condition):
 
 
 class SleepingSickness(Condition):
+
+    additional_fatigue = 25
 
     def on_start(self):
         print('sleeping sickness')
@@ -742,6 +751,8 @@ class SleepingSickness(Condition):
 
 class TB(Condition):
 
+    additional_fatigue = 20
+
     def on_start(self):
         self.prob = 0.05
         self.body.ss('bleeding', True)
@@ -763,6 +774,8 @@ class TB(Condition):
 
 
 class Pertussis(Condition):
+
+    additional_fatigue = 5
 
     def on_start(self):
         self.prob = 0.05
@@ -788,6 +801,8 @@ class Pertussis(Condition):
 
 class Insomnia(Condition):
 
+    additional_fatigue = 10
+
     def on_interact(self, obj, time):
         if obj.interaction == Interactions.SLEEP:
             fatigue = self.body.gs('fatigue')
@@ -807,6 +822,8 @@ diseases = [
 
 
 class Asthma(Condition):
+
+    additional_fatigue = 0
 
     def on_start(self):
         self.prob = 0.005

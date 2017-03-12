@@ -17,9 +17,10 @@ def main():
             game = Game()
             game.run(
                 character_info={'ADDITONAL_FATIGUE': [],
-                                'PREEXISTING_CONDITIONS':
-                                preexisting_conditions,
-                                'DISEASE': choice(diseases)})
+                                'PREEXISTING_CONDITIONS': preexisting_conditions,
+                                'DISEASE': choice(diseases),
+                                'ADDITIONAL_FATIGUE': []
+                                })
         else:
             break
 
