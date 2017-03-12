@@ -3,3 +3,5 @@ Tuberculosis (TB) is an infectious disease caused by the bacterium Mycobacterium
 Tuberculosis may infect any part of the body, but most commonly occurs in the lungs (known as pulmonary tuberculosis). Extrapulmonary TB occurs when tuberculosis develops outside of the lungs, although extrapulmonary TB may coexist with pulmonary TB.
 
 General signs and symptoms include fever, chills, night sweats, loss of appetite, weight loss, and fatigue. Significant nail clubbing may also occur.
+
+Rifampicin is used for the treatment of tuberculosis in combination with other antibiotics, such as pyrazinamide, isoniazid, and ethambutol.
