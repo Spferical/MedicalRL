@@ -720,6 +720,29 @@ class SleepingSickness(Condition):
     def on_completion(self):
         pass
 
+
+class TB(Condition):
+
+    def on_start(self):
+        self.prob = 0.05
+        self.body.ss('bleeding', True)
+        self.body.sc('tb_chills', Chills(), {})
+        self.body.sc('tb_fever', Fever(), {})
+        self.body.sc('tb_cough', Cough(), {'severe': True})
+
+    def on_progression(self, time):
+        if time > 200 and random() < self.prob:
+            if random() < 0.5:
+                self.body.message(
+                    "You notice that the lymph nodes on your neck are enlarged")
+
+    def on_interact(self, obj, time):
+        return True
+
+    def on_completion(self):
+        pass
+
+
 # Pre-existing conditions:
 
 
@@ -737,7 +760,8 @@ class Insomnia(Condition):
 diseases = [
     Pneumonia(),
     Dengue(),
-    SleepingSickness()
+    SleepingSickness(),
+    TB()
 ]
 
 
