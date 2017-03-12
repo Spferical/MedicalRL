@@ -144,6 +144,18 @@ class Game(object):
             self.ui.messages_window.message(
                 "You drink the antiserum.")
             action = True
+        elif obj.interaction == world.Interactions.CURE_SLEEPING_SICKNESS:
+            self.ui.messages_window.message(
+                "You inject the pentamidine.")
+            action = True
+        elif obj.interaction == world.Interactions.CURE_TB:
+            self.ui.messages_window.message(
+                "You inject the rifampicin.")
+            action = True
+        elif obj.interaction == world.Interactions.CURE_PERTUSSIS:
+            self.ui.messages_window.message(
+                "You inject the erythromycin.")
+            action = True
         if action:
             t = self.world.player.body.on_interact(obj)
             if t != -1:

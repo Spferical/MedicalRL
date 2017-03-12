@@ -106,6 +106,24 @@
             "interaction": "CURE_DENGUE",
             "consumed_on_use": false
         },
+        "pentamidine": {
+            "char": "!",
+            "fg_color": "light_purple",
+            "interaction": "CURE_SLEEPING_SICKNESS",
+            "consumed_on_use": false
+        },
+        "rifampicin": {
+            "char": "!",
+            "fg_color": "light_chartreuse",
+            "interaction": "CURE_TB",
+            "consumed_on_use": false
+        },
+        "erythromycin": {
+            "char": "!",
+            "fg_color": "light_yellow",
+            "interaction": "CURE_PERTUSSIS",
+            "consumed_on_use": false
+        },
         "cabinet": {
             "char": "=",
             "fg_color": "sepia",
