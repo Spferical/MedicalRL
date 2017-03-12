@@ -161,8 +161,9 @@ class Body(object):
             action_time = self.const('EAT_TIME')
         elif obj.interaction == Interactions.SLEEP:
             noise = random() - 0.5
-            sleep_time = max(min((self.gs('fatigue') /
-                                  self.const('MAX_FATIGUE') + noise), 1.0)
+            max_ds = self.const('MAX_FATIGUE') - self.const('BASE_FATIGUE')
+            ds = self.gs('fatigue') - self.const('BASE_FATIGUE')
+            sleep_time = max(min((ds / max_ds + noise), 1.0)
                              * self.const('MAX_SLEEP_TIME'), 0)
             delta = (self.gs('fatigue') - self.const('BASE_FATIGUE')) * noise
             new_fatigue = max(self.gs('fatigue') - delta,
@@ -172,11 +173,15 @@ class Body(object):
             self.ss('fatigue', new_fatigue)
             action_time = sleep_time
 
+        fails = False
         for name, condition in self.conditions.items():
             can_do_it = condition.on_interact(
                 condition, self.turn_number - condition.start_time)
             if not can_do_it:
-                return -1
+                fails = True
+
+        if fails:
+            return False
 
         time = int(action_time ** (1 + k * (self.gs('fatigue') /
                                             self.const('MAX_FATIGUE'))))
