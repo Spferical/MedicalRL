@@ -749,7 +749,8 @@ class Insomnia(Condition):
 diseases = [
     Pneumonia(),
     Dengue(),
-    SleepingSickness()
+    SleepingSickness(),
+    TB()
 ]
 
 
