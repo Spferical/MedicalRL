@@ -128,6 +128,10 @@ class Game(object):
             self.ui.messages_window.message(
                     "You eat the " + obj.name + ".", tcod.light_blue)
             return True
+        elif obj.interaction == world.Interactions.SLEEP:
+            if ui.yes_no_menu("Sleep in the bed?") is True:
+                self.ui.messages_window.message(
+                    "You sleep for a while.")
 
     def attempt_player_move(self, direction):
         """Returns True if player successfully moved."""
