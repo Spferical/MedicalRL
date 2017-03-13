@@ -5,6 +5,8 @@ Written by Srinivas Kaza and Matthew Pfeiffer
 Uses libtcod 1.5.1 © Jice & Mingos
 http://doryen.eptalys.net/libtcod
 
+![Screenshot](screenshot.png)
+
 #ABOUT
 
 You wake up in an empty hospital infected with some fatal disease, and must
